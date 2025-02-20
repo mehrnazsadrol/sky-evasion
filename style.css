@@ -1,0 +1,31 @@
+.canvas-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+.canvas-wrapper {
+    height: 100vh;
+    width: 80%;
+    height: 65%;
+    min-width: 580px;
+    min-height: 470px;
+    max-width: 1000px;
+    max-height: 810px;
+}
+body {
+    background-color: #ffffff;
+}
+
+.start-content {
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+@font-face {
+    font-family: 'ubuntu-medium';
+    src: url('res/fonts/ubuntu-medium.ttf') format('truetype');
+}
