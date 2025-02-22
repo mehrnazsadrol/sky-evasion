@@ -1,9 +1,9 @@
 import { BackgroundOptions } from './backgroundOptions.js';
 import { ButtonManager } from './buttonManager.js';
 import { Avatar } from './avatar.js';
+import { CityBackgroundManager } from './cityBackgroundManager.js';
 
 (async () => {
-  const backgroundButton = document.getElementById("backgroundButton");
   const canvas_container = document.getElementById("canvas-container");
   const canvas_wrapper = document.getElementById('canvas-wrapper');
   const c_width = canvas_wrapper ? canvas_wrapper.clientWidth : window.innerWidth;
@@ -41,9 +41,12 @@ import { Avatar } from './avatar.js';
   async function startGame() {
     console.log("Game started");
     app.stage.removeChildren();
+    const backgroundManager = new CityBackgroundManager(c_height, c_width);
+    await backgroundManager.loadAssets();
+    backgroundManager.createBackgroundLayers(app);
+    backgroundManager.animateBackground(app);
 
   }
-
   function changeCanvasBackground(cityIdx) {
     game_theme = cityIdx;
     localStorage.setItem('cityIndex', cityIdx);
