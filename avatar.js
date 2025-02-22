@@ -16,6 +16,7 @@ export class Avatar {
       jump: null,
       dead: null,
     };
+    this.activeAnimation = null;
   };
 
   async loadAssets(c_width) {
@@ -52,53 +53,58 @@ export class Avatar {
         }
       }
       this.animations[key] = new PIXI.AnimatedSprite(textures);
-      this.animations[key].animationSpeed = 0.25;
+      this.animations[key].animationSpeed = (key === "idle") ? 0.25 : 1;
       this.animations[key].loop = true;
       this.animations[key].width = c_width / 10;
       this.animations[key].height = c_width / 10 * aspecRatio;
-      console.log(this.animations[key].width, this.animations[key].height);
+
+
     }
   }
 
+  addToStage(container, x, y) {
+    for (const animation of Object.values(this.animations)) {
+      if (animation) {
+        container.addChild(animation);
+        animation.visible = false;
+        animation.x = x;
+        animation.y = y;
+      }
+    }
+
+    this.activeAnimation = this.animations.idle;
+    this.activeAnimation.visible = true;
+    this.activeAnimation.play();
+  }
+
+  playAnimation(animationKey) {
+    if (this.activeAnimation) {
+      this.activeAnimation.visible = false;
+      this.activeAnimation.stop();
+    }
+    this.activeAnimation = this.animations[animationKey];
+    this.activeAnimation.visible = true;
+    this.activeAnimation.play();
+  }
+
+
   playIdle() {
-    this.stopAllAnimations();
-    this.animations.idle.play();
-    this.state.idle = true;
+    this.playAnimation("idle");
   }
 
   playWalk() {
-    this.stopAllAnimations();
-    this.animations.walk.play();
-    this.state.walk = true;
+    this.playAnimation("walk");
   }
 
   playRun() {
-    this.stopAllAnimations();
-    this.animations.run.play();
-    this.state.run = true;
+    this.playAnimation("run");
   }
 
   playJump() {
-    this.stopAllAnimations();
-    this.animations.jump.play();
-    this.state.jump = true;
+    this.playAnimation("jump");
   }
 
-  stopAllAnimations() {
-    for (const animation of Object.values(this.animations)) {
-      if (animation) {
-        animation.stop();
-      }
-    }
-  }
-
-  addToStage(stage ) {
-    for (const [key, animation] of Object.entries(this.animations)) {
-      if (animation) {
-        stage.addChild(animation);
-        animation.visible = false;
-      }
-    }
-    this.animations.run.visible = true;
+  getAvatarHeight() {
+    return this.animations.idle.height;
   }
 }

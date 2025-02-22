@@ -1,7 +1,9 @@
 import { BackgroundOptions } from './backgroundOptions.js';
 import { ButtonManager } from './buttonManager.js';
 import { Avatar } from './avatar.js';
+import { GameController } from './gameController.js';
 import { CityBackgroundManager } from './cityBackgroundManager.js';
+
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -37,16 +39,29 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
   await buttonManager.createWallpaperButton();
   await buttonManager.createStartButton();
 
-  let avatar = null;
   async function startGame() {
-    console.log("Game started");
     app.stage.removeChildren();
+    await setupGameController();
+  }
+
+  async function setupGameController() {
     const backgroundManager = new CityBackgroundManager(c_height, c_width);
     await backgroundManager.loadAssets();
     backgroundManager.createBackgroundLayers(app);
-    backgroundManager.animateBackground(app);
 
+    const avatar = new Avatar();
+    await avatar.loadAssets(c_width);
+
+    const container = new PIXI.Container();
+    app.stage.addChild(container);
+    let gameController = new GameController(container, backgroundManager, avatar, c_width, c_height);
+
+    app.ticker.add(() => {
+      gameController.update();
+    });
   }
+
+
   function changeCanvasBackground(cityIdx) {
     game_theme = cityIdx;
     localStorage.setItem('cityIndex', cityIdx);
@@ -57,6 +72,4 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
     }
   }
 
-  
-  
 })();

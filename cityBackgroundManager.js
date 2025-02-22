@@ -115,25 +115,18 @@ export class CityBackgroundManager {
       city.layers.push({
         container: layerContainer,
         tilingSprite,
-        speed: 0.5 + i * 0.25,
+        speed: i * 0.05,
       });
     }
-
   }
 
-  animateBackground(app) {
+  updateBackgroundLayers(speed) {
     const cityN = this.currentBackground + 1;
     const city = this.backgrounds[cityN];
-    if (!city) return;
-
-    app.ticker.add(() => {
+    if (city) {
       for (const layer of city.layers) {
-        layer.tilingSprite.tilePosition.x -= layer.speed;
-
-        if (layer.tilingSprite.tilePosition.x <= -layer.tilingSprite.width) {
-          layer.tilingSprite.tilePosition.x = 0;
-        }
+        layer.tilingSprite.tilePosition.x -= speed * layer.speed; // Apply parallax speed
       }
-    });
+    }
   }
 }
