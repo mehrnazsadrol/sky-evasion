@@ -1,11 +1,12 @@
 export class GameController {
 
-    constructor(container, backgroundManager, avatar, c_width, c_height) {
+    constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond) {
       this.container = container;
       this.backgroundManager = backgroundManager;
       this.avatar = avatar;
       this.c_width = c_width;
       this.c_height = c_height;
+      this.totalFramesInOneSecond = totalFramesInOneSecond
 
       this.minRoadTileWidth = c_width / 5;
       this.maxRoadTileWidth = c_width;
@@ -22,6 +23,15 @@ export class GameController {
       this.velocity = 0.1;
       this.lastKeyPressTime = 0;
       this.doublePressThreshold = 300;
+      this.isRightKeyPressed = false;
+
+      this.isJumping = false;
+      this.isDoubleJumping = false; 
+      this.jumpStartTime = 0;
+      this.jumpDuration = 500;
+      this.jumpHorizontalDistance = (this.minTileSpace + this.maxTileSpace) / 2;
+      this.jumpPeakHeight = 80;
+      this.horizontalMovementPerFrame = null;
 
       const avatarHeight = this.avatar.getAvatarHeight();
       this.avatar.addToStage(
@@ -59,19 +69,43 @@ export class GameController {
     }
   
     handleMovement(keys, event) {
-      if (keys.ArrowRight || keys.d) {
-        const currentTime = Date.now();
-  
-        if (currentTime - this.lastKeyPressTime < this.doublePressThreshold) {
-          this.targetSpeed = this.maxRunSpeed;
-          this.avatar.playRun();
-        } else {
-          this.targetSpeed = this.maxWalkSpeed;
-          this.avatar.playWalk();
+      if ((keys.ArrowRight || keys.d) && !this.isJumping && !this.isDoubleJumping) {
+        if (!this.isRightKeyPressed) {
+          const currentTime = Date.now();
+            if (currentTime - this.lastKeyPressTime < this.doublePressThreshold) {
+            this.rightKeyPressCount++;
+          } else {
+            this.rightKeyPressCount = 1;
+          }
+            this.lastKeyPressTime = currentTime;
+
+          if (this.rightKeyPressCount === 2) {
+            this.targetSpeed = this.maxRunSpeed;
+            this.avatar.playRun();
+          } else {
+            this.targetSpeed = this.maxWalkSpeed;
+            this.avatar.playWalk();
+          }
         }
-  
-        this.lastKeyPressTime = currentTime;
+        this.isRightKeyPressed = true;
+      } else if (keys.ArrowUp || keys.w) {
+        if (!this.isJumping) {
+          this.isJumping = true;
+          this.jumpStartTime = Date.now();
+          this.horizontalMovementPerFrame = this.jumpHorizontalDistance / (this.totalFramesInOneSecond * this.jumpDuration / 1000);
+          this.avatar.playJump();
+        } else if (this.isJumping && !this.isDoubleJumping) {
+          this.isDoubleJumping = true;
+          this.jumpStartTime = Date.now();
+          this.horizontalMovementPerFrame =  2* this.jumpHorizontalDistance / (this.totalFramesInOneSecond * this.jumpDuration / 1000)
+          this.avatar.playJump();
+        }
       } else {
+
+        if (!keys.ArrowRight && !keys.d) {
+          this.isRightKeyPressed = false;
+        }
+
         this.targetSpeed = 0;
         this.avatar.playIdle();
       }
@@ -103,12 +137,38 @@ export class GameController {
       this.tiles.push(tile);
     }
 
-  update() {
-    this.speed += (this.targetSpeed - this.speed) * this.velocity;
-
-    for (const tile of this.tiles) {
-      tile.x -= this.speed;
+    _handleJump() {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - this.jumpStartTime;
+      const progress = Math.min(elapsedTime / this.jumpDuration, 1);
+  
+      const peakHeight = this.isDoubleJumping ? 2 * this.jumpPeakHeight : this.jumpPeakHeight;
+      const verticalMovement = -4 * peakHeight * progress * (1 - progress);
+  
+      const avatarBaseY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
+      this.avatar.activeAnimation.y = avatarBaseY + verticalMovement;
+  
+      if (progress >= 1) {
+        if (this.isDoubleJumping) {
+          this.isJumping = false;
+          this.isDoubleJumping = false;
+        } else {
+          this.isJumping = false;
+        }
+        this.avatar.playIdle();
+      }
     }
+
+  update() {
+    if (this.isJumping) {
+      this._handleJump();
+      this.speed = this.horizontalMovementPerFrame;
+    } else {
+      this.speed += (this.targetSpeed - this.speed) * this.velocity;
+    }
+      for (const tile of this.tiles) {
+        tile.x -= this.speed;
+      }
 
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
       const removedTile = this.tiles.shift();

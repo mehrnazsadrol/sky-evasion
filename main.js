@@ -57,7 +57,7 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
 
     const container = new PIXI.Container();
     app.stage.addChild(container);
-    let gameController = new GameController(container, backgroundManager, avatar, c_width, c_height);
+    let gameController = new GameController(container, backgroundManager, avatar, c_width, c_height, (app.ticker.FPS || 60));
 
     app.ticker.add(() => {
       gameController.update();

@@ -22,7 +22,7 @@ export class Avatar {
         walk: { url: "res/boy-character/Walk (", count: 15 },
         run: { url: "res/boy-character/Run (", count: 15 },
         jump: { url: "res/boy-character/Jump (", count: 15 },
-        dead: { url: "res/boy-character/Dead (", count: 30 },
+        dead: { url: "res/boy-character/Dead (", count: 15 },
       },
     };
   }
@@ -68,7 +68,7 @@ export class Avatar {
    */
   _createAnimatedSprite(textures, animationKey, c_width) {
     const sprite = new PIXI.AnimatedSprite(textures);
-    sprite.animationSpeed = animationKey === 'idle' ? 0.25 : 1;
+    sprite.animationSpeed = animationKey === 'run'? 1 : 0.25;
     sprite.loop = true;
     sprite.width = c_width / 10;
     sprite.height = (c_width / 10) * (textures[0].height / textures[0].width);
