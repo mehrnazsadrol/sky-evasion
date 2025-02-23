@@ -12,6 +12,7 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
   const c_height = canvas_wrapper ? canvas_wrapper.clientHeight : window.innerHeight;
   const canvas_bg_color = "0x2D336B";
   let game_theme = localStorage.getItem('cityIndex') ?? 0;
+  let game_avatar = localStorage.getItem('avatarIndex') ?? 0;
 
   const app = new PIXI.Application();
   await app.init({
@@ -33,11 +34,13 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
     canvas_bg_color,
     canvas_container,
     changeCanvasBackground,
-    startGame
+    changeAvatar,
+    startGame,
   );
 
   await buttonManager.createWallpaperButton();
   await buttonManager.createStartButton();
+  await buttonManager.createCharacterChangeButton();
 
   async function startGame() {
     app.stage.removeChildren();
@@ -65,10 +68,18 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
   function changeCanvasBackground(cityIdx) {
     game_theme = cityIdx;
     localStorage.setItem('cityIndex', cityIdx);
-    console.log(`Canvas background changed to city ${cityIdx + 1}`);
-    if (buttonManager.backgroundOptionsContainer) {
-      app.stage.removeChild(buttonManager.backgroundOptionsContainer);
-      buttonManager.backgroundOptionsContainer = null;
+    if (buttonManager.OptionsContainer) {
+      app.stage.removeChild(buttonManager.OptionsContainer);
+      buttonManager.OptionsContainer = null;
+    }
+  }
+
+  function changeAvatar(avatarIdx) {
+    game_avatar = avatarIdx;
+    localStorage.setItem('avatarIndex', avatarIdx);
+    if (buttonManager.OptionsContainer) {
+      app.stage.removeChild(buttonManager.OptionsContainer);
+      buttonManager.OptionsContainer = null;
     }
   }
 

@@ -1,14 +1,24 @@
+import { AvatarOptions } from './avatarOptions.js';
 import { BackgroundOptions } from './backgroundOptions.js';
 
 export class ButtonManager {
-  constructor(app, c_width, c_height, canvas_bg_color, canvas_container, changeCanvasBackground, startGame) {
+  constructor(app,
+    c_width,
+    c_height,
+    canvas_bg_color,
+    canvas_container,
+    changeCanvasBackground,
+    changeAvatar,
+    startGame) {
+
     this.app = app;
     this.c_width = c_width;
     this.c_height = c_height;
     this.canvas_bg_color = canvas_bg_color;
     this.canvas_container = canvas_container;
     this.changeCanvasBackground = changeCanvasBackground;
-    this.backgroundOptionsContainer = null;
+    this.changeAvatar = changeAvatar;
+    this.OptionsContainer = null;
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
       distance: 5,
       blur: 4,
@@ -19,12 +29,9 @@ export class ButtonManager {
   }
 
   async createWallpaperButton() {
-
-
     const iconW = 50;
     const iconH = 50;
 
-    
     const rect = new PIXI.Graphics();
     rect.beginFill(0xfffade, 0);
     rect.drawRect(0, 0, iconW, iconH);
@@ -40,7 +47,7 @@ export class ButtonManager {
 
     rect.addChild(wallpaperIcon);
 
-    rect.x = iconW;
+    rect.x = iconW + 10;
     rect.y = iconH;
 
     rect.on("pointerover", () => {
@@ -60,8 +67,54 @@ export class ButtonManager {
         this.changeCanvasBackground
       );
       await backgroundOptions.init();
-      this.backgroundOptionsContainer = backgroundOptions.getContainer();
-      this.app.stage.addChild(this.backgroundOptionsContainer);
+      this.OptionsContainer = backgroundOptions.getContainer();
+      this.app.stage.addChild(this.OptionsContainer);
+    });
+
+    this.app.stage.addChild(rect);
+  }
+
+  async createCharacterChangeButton() {
+    const iconW = 80;
+    const iconH = 80;
+
+    const rect = new PIXI.Graphics();
+    rect.beginFill(0xfffade, 0);
+    rect.drawRect(0, 0, iconW, iconH);
+    rect.endFill();
+
+    rect.interactive = true;
+    rect.buttonMode = true;
+
+    const wallpaperIconTexture = await PIXI.Assets.load('res/icons/avatar_icon2.png');
+    const wallpaperIcon = new PIXI.Sprite(wallpaperIconTexture);
+    wallpaperIcon.width = iconW;
+    wallpaperIcon.height = iconH;
+
+    rect.addChild(wallpaperIcon);
+
+    rect.x = 50;
+    rect.y = iconH * 1.5;
+
+    rect.on("pointerover", () => {
+      rect.filters = [this.dropShadowFilter];
+    });
+
+    rect.on("pointerout", () => {
+      rect.filters = [];
+    });
+
+    rect.on("click", async () => {
+      this.canvas_container.style.display = "none";
+      const avatarOptions = new AvatarOptions(
+        this.c_width,
+        this.c_height,
+        this.canvas_bg_color,
+        this.changeAvatar
+      );
+      await avatarOptions.init();
+      this.OptionsContainer = avatarOptions.getContainer();
+      this.app.stage.addChild(this.OptionsContainer);
     });
 
     this.app.stage.addChild(rect);
