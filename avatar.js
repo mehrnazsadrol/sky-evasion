@@ -11,18 +11,24 @@ export class Avatar {
     this.currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
     this.avatarConfig = {
       girl: {
+        assetUrl: {
         idle: { url: "res/girl-character/Idle (", count: 16 },
         walk: { url: "res/girl-character/Walk (", count: 20 },
         run: { url: "res/girl-character/Run (", count: 20 },
         jump: { url: "res/girl-character/Jump (", count: 30 },
         dead: { url: "res/girl-character/Dead (", count: 30 },
+        },
+        fallThreshold: 50/100,
       },
       boy: {
-        idle: { url: "res/boy-character/Idle (", count: 15 },
-        walk: { url: "res/boy-character/Walk (", count: 15 },
-        run: { url: "res/boy-character/Run (", count: 15 },
-        jump: { url: "res/boy-character/Jump (", count: 15 },
-        dead: { url: "res/boy-character/Dead (", count: 15 },
+        assetUrl: {
+          idle: { url: "res/boy-character/Idle (", count: 15 },
+          walk: { url: "res/boy-character/Walk (", count: 15 },
+          run: { url: "res/boy-character/Run (", count: 15 },
+          jump: { url: "res/boy-character/Jump (", count: 15 },
+          dead: { url: "res/boy-character/Dead (", count: 15 },
+        },
+        fallThreshold: 70/100,
       },
     };
   }
@@ -33,7 +39,7 @@ export class Avatar {
    */
   async loadAssets(c_width) {
     const avatarType = this.currentAvatarIndex === 0 ? 'girl' : 'boy';
-    const baseUrls = this.avatarConfig[avatarType];
+    const baseUrls = this.avatarConfig[avatarType]['assetUrl'];
 
     try {
       for (const [key, value] of Object.entries(baseUrls)) {
@@ -138,5 +144,30 @@ export class Avatar {
    */
   getAvatarHeight() {
     return this.animations.idle.height;
+  }
+
+  getAvatarWidth() {
+    return this.animations.idle.width;
+  }
+
+  getAvatarX() {
+    return this.activeAnimation.x;
+  }
+
+  getAvatarY() {
+    return this.activeAnimation.y;
+  }
+
+  setAvatarX(x) {
+    this.activeAnimation.x = x;
+  }
+
+  setAvatarY(y) {
+    this.activeAnimation.y = y;
+  }
+
+  getAvatarFallThreshold() {
+    const avatarConfig = this.currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
+    return avatarConfig.fallThreshold;
   }
 }
