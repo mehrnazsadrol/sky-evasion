@@ -3,6 +3,7 @@ import { ButtonManager } from './buttonManager.js';
 import { Avatar } from './avatar.js';
 import { GameController } from './gameController.js';
 import { CityBackgroundManager } from './cityBackgroundManager.js';
+import { GameOver } from './gameOver.js';
 
 
 (async () => {
@@ -92,7 +93,15 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
 
   function gameOver(container) {
     app.stage.removeChild(container);
+    app.ticker.stop();
+    const gameOverContainer = new PIXI.Container();
+    gameOver = new GameOver(gameOverContainer, c_width, c_height, restartGame);
+    app.stage.addChild(gameOverContainer);
     console.log('Game Over!');
+  }
+
+  function restartGame() {
+    console.log('Restarting Game');
   }
 
 })();
