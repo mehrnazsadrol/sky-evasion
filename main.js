@@ -57,7 +57,14 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
 
     const container = new PIXI.Container();
     app.stage.addChild(container);
-    let gameController = new GameController(container, backgroundManager, avatar, c_width, c_height, (app.ticker.FPS || 60));
+    let gameController = new GameController(
+      container,
+      backgroundManager,
+      avatar,
+      c_width,
+      c_height,
+      (app.ticker.FPS || 60),
+      gameOver);
 
     app.ticker.add(() => {
       gameController.update();
@@ -81,6 +88,11 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
       app.stage.removeChild(buttonManager.OptionsContainer);
       buttonManager.OptionsContainer = null;
     }
+  }
+
+  function gameOver(container) {
+    app.stage.removeChild(container);
+    console.log('Game Over!');
   }
 
 })();

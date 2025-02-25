@@ -1,12 +1,13 @@
 export class GameController {
 
-  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond) {
+  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver) {
     this.container = container;
     this.backgroundManager = backgroundManager;
     this.avatar = avatar;
     this.c_width = c_width;
     this.c_height = c_height;
-    this.totalFramesInOneSecond = totalFramesInOneSecond
+    this.totalFramesInOneSecond = totalFramesInOneSecond;
+    this.gameOver = gameOver;
 
     this.minRoadTileWidth = c_width / 5;
     this.maxRoadTileWidth = c_width;
@@ -57,14 +58,14 @@ export class GameController {
     };
 
     window.addEventListener('keydown', (event) => {
-      if (event.key in keys) {
+      if (event.key in keys && !this.isFalling) {
         keys[event.key] = true;
         this.handleMovement(keys, event);
       }
     });
 
     window.addEventListener('keyup', (event) => {
-      if (event.key in keys) {
+      if (event.key in keys && !this.isFalling) {
         keys[event.key] = false;
         this.handleMovement(keys, event);
       }
@@ -163,6 +164,11 @@ export class GameController {
   }
 
   update() {
+    if (this.isFalling) {
+      this._handleFall();
+      return;
+    }
+
     if (this.isJumping) {
       this._handleJump();
       this.speed = this.horizontalMovementPerFrame;
@@ -175,10 +181,6 @@ export class GameController {
 
     if (!this.isJumping) {
       this._checkFellDown();
-    }
-
-    if (this.isFalling) {
-      this._handleFall();
     }
 
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
@@ -223,13 +225,11 @@ export class GameController {
   }
 
   _handleFall() {
-
     const avatarY = this.avatar.getAvatarY();
-    this.avatar.setAvatarY( avatarY + this.fallSpeed);
-
     if (avatarY > this.c_height) {
-      this.isFalling = false;
-      console.log('Avatar fell off the canvas!');
+      this.gameOver(this.container);
+    } else {
+      this.avatar.setAvatarY( avatarY + this.fallSpeed);
     }
   }
 }
