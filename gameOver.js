@@ -1,5 +1,3 @@
-import { Hud } from "./hud.js";
-
 export class GameOver {
   constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets) {
     this.container = gameOverContainer;
@@ -79,7 +77,7 @@ export class GameOver {
     });
 
     rect.on("click", async () => {
-      this.restartGame();
+      await this.restartGame();
     });
 
     this.container.addChild(rect);
@@ -111,6 +109,5 @@ export class GameOver {
     currentScoreText.x = this.c_width / 2;
     currentScoreText.y = this.c_height / 3 + 50;
     this.container.addChild(currentScoreText);
-    console.log('added score');
   }
 }
