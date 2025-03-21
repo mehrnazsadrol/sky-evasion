@@ -4,7 +4,8 @@ import { Avatar } from './avatar.js';
 import { GameController } from './gameController.js';
 import { CityBackgroundManager } from './cityBackgroundManager.js';
 import { GameOver } from './gameOver.js';
-
+import { Hud } from './hud.js';
+import { Assets } from './assets.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -21,6 +22,7 @@ import { GameOver } from './gameOver.js';
     height: c_height,
     backgroundColor: canvas_bg_color,
   });
+  canvas_container.style.display = "none";
 
   document.body.appendChild(app.canvas);
   app.canvas.style.position = "absolute";
@@ -28,20 +30,28 @@ import { GameOver } from './gameOver.js';
   app.canvas.style.left = "50%";
   app.canvas.style.transform = "translate(-50%, -50%)";
 
+  const assets = new Assets();
+  await assets.loadAssets();
+
+  const firstPageContainer = new PIXI.Container();
   const buttonManager = new ButtonManager(
     app,
+    firstPageContainer,
     c_width,
     c_height,
     canvas_bg_color,
-    canvas_container,
     changeCanvasBackground,
     changeAvatar,
     startGame,
+    assets,
   );
 
-  await buttonManager.createWallpaperButton();
-  await buttonManager.createStartButton();
-  await buttonManager.createCharacterChangeButton();
+  buttonManager.loadPage();
+  app.stage.addChild(firstPageContainer);
+
+  let hud;
+  let gameOverContainer;
+  let gameContainer;
 
   async function startGame() {
     app.stage.removeChildren();
@@ -49,23 +59,26 @@ import { GameOver } from './gameOver.js';
   }
 
   async function setupGameController() {
-    const backgroundManager = new CityBackgroundManager(c_height, c_width);
-    await backgroundManager.loadAssets();
+    const backgroundManager = new CityBackgroundManager(c_height, c_width, assets);
     backgroundManager.createBackgroundLayers(app);
 
-    const avatar = new Avatar();
-    await avatar.loadAssets(c_width);
+    const avatar = new Avatar(assets);
+    await avatar.loadAnimation(c_width);
 
-    const container = new PIXI.Container();
-    app.stage.addChild(container);
+    gameContainer = new PIXI.Container();
+    app.stage.addChild(gameContainer);
+
+    hud = new Hud(gameContainer, c_width, c_height);
+
     let gameController = new GameController(
-      container,
+      gameContainer,
       backgroundManager,
       avatar,
       c_width,
       c_height,
       (app.ticker.FPS || 60),
-      gameOver);
+      gameOver,
+      assets);
 
     app.ticker.add(() => {
       gameController.update();
@@ -91,17 +104,25 @@ import { GameOver } from './gameOver.js';
     }
   }
 
-  function gameOver(container) {
-    app.stage.removeChild(container);
+  async function gameOver() {
+    app.stage.removeChild(gameContainer);
     app.ticker.stop();
-    const gameOverContainer = new PIXI.Container();
-    gameOver = new GameOver(gameOverContainer, c_width, c_height, restartGame);
+    gameOverContainer = new PIXI.Container();
+    const gameOverScreen = new GameOver(
+      gameOverContainer,
+      c_width,
+      c_height,
+      restartGame,
+      hud,
+      assets
+    );
+    gameOverScreen.init();
     app.stage.addChild(gameOverContainer);
-    console.log('Game Over!');
   }
 
   function restartGame() {
-    console.log('Restarting Game');
+    console.log('Restarting game...');
+    app.stage.removeChild(gameOverContainer);
   }
 
 })();

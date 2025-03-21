@@ -1,6 +1,7 @@
 export class GameController {
 
-  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver) {
+  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets) {
+    this.assets = assets;
     this.container = container;
     this.backgroundManager = backgroundManager;
     this.avatar = avatar;
@@ -210,7 +211,7 @@ export class GameController {
       const gapStart = currentTile.x + currentTile.width;
       const gapEnd = nextTile.x;
 
-      const avatarFallThreshold = 1 - this.avatar.getAvatarFallThreshold();
+      const avatarFallThreshold = 1 - this.assets.getAvatarFallThreshold();
 
       if (
         avatarX + avatarWidth *  avatarFallThreshold > gapStart &&
@@ -227,7 +228,7 @@ export class GameController {
   _handleFall() {
     const avatarY = this.avatar.getAvatarY();
     if (avatarY > this.c_height) {
-      this.gameOver(this.container);
+      this.gameOver();
     } else {
       this.avatar.setAvatarY( avatarY + this.fallSpeed);
     }

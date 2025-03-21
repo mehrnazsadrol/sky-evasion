@@ -1,60 +1,10 @@
 export class CityBackgroundManager {
-  constructor(c_height, c_width) {
+  constructor(c_height, c_width, assets) {
     this.c_height = c_height;
     this.c_width = c_width;
+    this.assets = assets;
     this.currentBackground = Number(localStorage.getItem('cityIndex')) || 0;
-    this.backgrounds = {
-      1: {
-        count: 5,
-        textures: [],
-        layers: []
-      },
-      2: {
-        count: 6,
-        textures: [],
-        layers: []
-      },
-      3: {
-        count: 5,
-        textures: [],
-        layers: []
-      },
-      4: {
-        count: 6,
-        textures: [],
-        layers: []
-      },
-      5: {
-        count: 5,
-        textures: [],
-        layers: []
-      },
-      6: {
-        count: 6,
-        textures: [],
-        layers: []
-      },
-      7: {
-        count: 5,
-        textures: [],
-        layers: []
-      },
-      8: {
-        count: 5,
-        textures: [],
-        layers: []
-      },
-    };
-  }
-
-  async loadAssets() {
-    for (const [key, item] of Object.entries(this.backgrounds)) {
-      const baseUrl = `res/city-backgrounds/city${key}/`;
-      for (let i = 1; i <= item.count; i++) {
-        const bg = await PIXI.Assets.load(`${baseUrl}${i}.png`);
-        item.textures.push(bg);
-      }
-    }
+    this.cityLayers = [];
   }
 
   mergeTextures(textures, renderer) {
@@ -88,7 +38,8 @@ export class CityBackgroundManager {
 
   createBackgroundLayers(app) {
     const cityN = this.currentBackground+1;
-    const city = this.backgrounds[cityN];
+    const city = this.assets.getCityBackgrounds(cityN);
+
     const baseScale = this.c_height / city.textures[0].height;
     if (!city) return;
 
@@ -112,21 +63,20 @@ export class CityBackgroundManager {
       layerContainer.addChild(tilingSprite);
 
 
-      city.layers.push({
+      this.cityLayers.push({
         container: layerContainer,
         tilingSprite,
         speed: i * 0.05,
       });
+
     }
   }
 
   updateBackgroundLayers(speed) {
-    const cityN = this.currentBackground + 1;
-    const city = this.backgrounds[cityN];
-    if (city) {
-      for (const layer of city.layers) {
+
+      for (const layer of this.cityLayers) {
         layer.tilingSprite.tilePosition.x -= speed * layer.speed; // Apply parallax speed
       }
-    }
+
   }
 }

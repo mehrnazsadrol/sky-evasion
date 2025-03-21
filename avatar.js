@@ -1,5 +1,6 @@
 export class Avatar {
-  constructor() {
+  constructor(assets) {
+    this.assets = assets;
     this.animations = {
       idle: null,
       walk: null,
@@ -9,60 +10,23 @@ export class Avatar {
     };
     this.activeAnimation = null;
     this.currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
-    this.avatarConfig = {
-      girl: {
-        assetUrl: {
-        idle: { url: "res/girl-character/Idle (", count: 16 },
-        walk: { url: "res/girl-character/Walk (", count: 20 },
-        run: { url: "res/girl-character/Run (", count: 20 },
-        jump: { url: "res/girl-character/Jump (", count: 30 },
-        dead: { url: "res/girl-character/Dead (", count: 30 },
-        },
-        fallThreshold: 50/100,
-      },
-      boy: {
-        assetUrl: {
-          idle: { url: "res/boy-character/Idle (", count: 15 },
-          walk: { url: "res/boy-character/Walk (", count: 15 },
-          run: { url: "res/boy-character/Run (", count: 15 },
-          jump: { url: "res/boy-character/Jump (", count: 15 },
-          dead: { url: "res/boy-character/Dead (", count: 15 },
-        },
-        fallThreshold: 70/100,
-      },
-    };
   }
 
   /**
    * Loads assets for the avatar based on the selected avatar type (girl or boy).
    * @param {number} c_width - The width of the container to calculate the avatar size.
    */
-  async loadAssets(c_width) {
+  async loadAnimation(c_width) {
     const avatarType = this.currentAvatarIndex === 0 ? 'girl' : 'boy';
-    const baseUrls = this.avatarConfig[avatarType]['assetUrl'];
+    const avatarConfig = this.assets.getAvatarTextures(avatarType);
 
     try {
-      for (const [key, value] of Object.entries(baseUrls)) {
-        const textures = await this._loadTextures(value.url, value.count);
-        this.animations[key] = this._createAnimatedSprite(textures, key, c_width);
+      for (const [key, item] of Object.entries(avatarConfig)) {
+        this.animations[key] = this._createAnimatedSprite(item['textures'], key, c_width);
       }
     } catch (error) {
       console.error('Failed to load assets:', error);
     }
-  }
-
-  /**
-   * Loads textures for a given animation.
-   * @param {string} baseUrl - The base URL for the animation frames.
-   * @param {number} count - The number of frames in the animation.
-   * @returns {Promise<PIXI.Texture[]>} - A promise that resolves to an array of textures.
-   */
-  async _loadTextures(baseUrl, count) {
-    const texturePromises = [];
-    for (let i = 1; i <= count; i++) {
-      texturePromises.push(PIXI.Assets.load(`${baseUrl}${i}).png`));
-    }
-    return await Promise.all(texturePromises);
   }
 
   /**
@@ -73,6 +37,9 @@ export class Avatar {
    * @returns {PIXI.AnimatedSprite} - The configured animated sprite.
    */
   _createAnimatedSprite(textures, animationKey, c_width) {
+    if (!Array.isArray(textures) || textures.length === 0) {
+      throw new Error(`No textures found for animation: ${animationKey}`);
+    }
     const sprite = new PIXI.AnimatedSprite(textures);
     sprite.animationSpeed = animationKey === 'run'? 1 : 0.25;
     sprite.loop = true;
@@ -164,10 +131,5 @@ export class Avatar {
 
   setAvatarY(y) {
     this.activeAnimation.y = y;
-  }
-
-  getAvatarFallThreshold() {
-    const avatarConfig = this.currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
-    return avatarConfig.fallThreshold;
   }
 }
