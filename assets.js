@@ -34,6 +34,18 @@ export class Assets {
         fallThreshold: 70 / 100,
       },
     };
+
+    this.slimeConfig = {
+      blue: {
+        url: "res/Blue_Slime/Walk(", count: 8, textures: [],
+      },
+      green: {
+        url: "res/Green_Slime/Walk(", count: 8, textures: [],
+      },
+      red: {
+        url: "res/Red_Slime/Walk(", count: 8, textures: [],
+      },
+    };
   }
 
   async loadAssets() {
@@ -50,6 +62,14 @@ export class Assets {
 
     await this.loadCityBackgrounds();
     await this.loadAvatarAssets();
+    await this.loadSlimeAssets();
+  }
+
+  async loadSlimeAssets() {
+    for (const [key, item] of Object.entries(this.slimeConfig)) {
+      const textures = await this._loadTextures(item.url, item.count);
+      this.slimeConfig[key].textures = textures
+    }
   }
 
   async loadAvatarAssets() {
@@ -60,7 +80,7 @@ export class Assets {
       }
     }
   }
-  async _loadTextures(baseUrl, count) {
+  async _loadTextures(baseUrl, count, slime) {
     const texturePromises = [];
     for (let i = 1; i <= count; i++) {
       texturePromises.push(PIXI.Assets.load(`${baseUrl}${i}).png`));
