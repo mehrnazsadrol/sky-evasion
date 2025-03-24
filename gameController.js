@@ -1,3 +1,4 @@
+import { Slime } from './slime.js';
 export class GameController {
 
   constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets) {
@@ -31,8 +32,8 @@ export class GameController {
     this.isDoubleJumping = false;
     this.jumpStartTime = 0;
     this.jumpDuration = 500;
-    this.jumpHorizontalDistance = (this.minTileSpace + this.maxTileSpace) / 2;
-    this.jumpPeakHeight = 80;
+    this.jumpHorizontalDistance = this.minTileSpace * 2;
+    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) /2  ;
     this.horizontalMovementPerFrame = null;
 
     this.isFalling = false;
@@ -74,47 +75,58 @@ export class GameController {
   }
 
   handleMovement(keys, event) {
-    if ((keys.ArrowRight || keys.d) && !this.isJumping && !this.isDoubleJumping) {
-      if (!this.isRightKeyPressed) {
-        const currentTime = Date.now();
-        if (currentTime - this.lastKeyPressTime < this.doublePressThreshold) {
-          this.rightKeyPressCount++;
-        } else {
-          this.rightKeyPressCount = 1;
+    const avatarState = this.avatar.getAvatarState();
+    const currentTime = Date.now();
+    
+    // Handle right movement (walk/run)
+    if (keys.ArrowRight || keys.d) {
+        // Check for double press to run
+        if (event.type === 'keydown') {
+            if (currentTime - this.lastKeyPressTime < this.doublePressThreshold && 
+                !this.isRightKeyPressed) {
+                // Double press detected - run
+                this.targetSpeed = this.maxRunSpeed;
+                this.avatar.setAvatarState('run');
+            } else if (!this.isRightKeyPressed) {
+                // Single press - walk
+                this.targetSpeed = this.maxWalkSpeed;
+                this.avatar.setAvatarState('walk');
+            }
+            this.lastKeyPressTime = currentTime;
         }
-        this.lastKeyPressTime = currentTime;
-
-        if (this.rightKeyPressCount === 2) {
-          this.targetSpeed = this.maxRunSpeed;
-          this.avatar.playRun();
-        } else {
-          this.targetSpeed = this.maxWalkSpeed;
-          this.avatar.playWalk();
-        }
-      }
-      this.isRightKeyPressed = true;
-    } else if (keys.ArrowUp || keys.w) {
-      if (!this.isJumping) {
-        this.isJumping = true;
-        this.jumpStartTime = Date.now();
-        this.horizontalMovementPerFrame = this.jumpHorizontalDistance / (this.totalFramesInOneSecond * this.jumpDuration / 1000);
-        this.avatar.playJump();
-      } else if (this.isJumping && !this.isDoubleJumping) {
-        this.isDoubleJumping = true;
-        this.jumpStartTime = Date.now();
-        this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance / (this.totalFramesInOneSecond * this.jumpDuration / 1000)
-        this.avatar.playJump();
-      }
+        
+        this.isRightKeyPressed = true;
     } else {
-
-      if (!keys.ArrowRight && !keys.d) {
+        // Right key released
+        if (this.isRightKeyPressed) {
+            this.targetSpeed = 0;
+            if (!this.isJumping) {
+                this.avatar.setAvatarState('idle');
+            }
+        }
+        this.isRightKeyPressTime = 0;
         this.isRightKeyPressed = false;
-      }
-
-      this.targetSpeed = 0;
-      this.avatar.playIdle();
     }
-  }
+
+    // Handle jumping
+    if ((keys.ArrowUp || keys.w) && event.type === 'keydown') {
+        if (!this.isJumping) {
+            // First jump
+            this.isJumping = true;
+            this.jumpStartTime = Date.now();
+            this.horizontalMovementPerFrame = this.jumpHorizontalDistance / 
+                (this.totalFramesInOneSecond * this.jumpDuration / 1000);
+            this.avatar.setAvatarState('jump');
+        } else if (!this.isDoubleJumping) {
+            // Double jump
+            this.isDoubleJumping = true;
+            this.jumpStartTime = Date.now();
+            this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance / 
+                (this.totalFramesInOneSecond * this.jumpDuration / 1000);
+            this.avatar.setAvatarState('jump');
+        }
+    }
+}
 
   createEnvironment() {
     const totalRoadWidth = 2 * this.c_width;
@@ -137,6 +149,11 @@ export class GameController {
 
     tile.x = x;
     tile.y = this.c_height - this.roadTileHeight;
+    if (Math.random() < 0.5) {
+      const slimeX = tile.x + Math.random() * tile.width;
+      const slimeY = tile.y;
+      tile.slime = new Slime(this.container, slimeX, slimeY, this.assets, 'blue');
+    }
 
     this.container.addChild(tile);
     this.tiles.push(tile);
@@ -160,7 +177,11 @@ export class GameController {
       } else {
         this.isJumping = false;
       }
-      this.avatar.playIdle();
+      if (this.isRightKeyPressed) {
+        this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
+    } else {
+        this.avatar.setAvatarState('idle');
+    }
     }
   }
 
@@ -178,14 +199,20 @@ export class GameController {
     }
     for (const tile of this.tiles) {
       tile.x -= this.speed;
+      if (tile.slime)
+        tile.slime.setSlimeX(-this.speed);
     }
 
     if (!this.isJumping) {
       this._checkFellDown();
+      this._checkSlimeCollision();
     }
 
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
       const removedTile = this.tiles.shift();
+      if (removedTile.slime) {
+        this.container.removeChild(removedTile.slime);
+      }
       this.container.removeChild(removedTile);
     }
 
@@ -214,7 +241,7 @@ export class GameController {
       const avatarFallThreshold = 1 - this.assets.getAvatarFallThreshold();
 
       if (
-        avatarX + avatarWidth *  avatarFallThreshold > gapStart &&
+        avatarX + avatarWidth * avatarFallThreshold > gapStart &&
         avatarX + avatarWidth * avatarFallThreshold < gapEnd
       ) {
         this.avatar.setAvatarX(gapStart - avatarWidth / 2);
@@ -225,12 +252,35 @@ export class GameController {
     }
   }
 
+  _checkSlimeCollision() {
+    const avatarX = this.avatar.getAvatarX();
+    const avatarY = this.avatar.getAvatarY();
+    const avatarWidth = this.avatar.getAvatarWidth();
+    const avatarHeight = this.avatar.getAvatarHeight();
+    const avatarCollisionThreshold = this.assets.getAvatarCollisionThreshold();
+
+    for (const tile of this.tiles) {
+      if (tile.slime) {
+        const slime = tile.slime;
+        const slimeX = slime.animatedSlime.x;
+        const slimeWidth = slime.animatedSlime.width;
+
+        if (
+          avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
+          avatarX + avatarWidth * avatarCollisionThreshold < slimeX + slimeWidth
+        ) {
+          this.gameOver();
+        }
+      }
+    }
+  }
+
   _handleFall() {
     const avatarY = this.avatar.getAvatarY();
     if (avatarY > this.c_height) {
       this.gameOver();
     } else {
-      this.avatar.setAvatarY( avatarY + this.fallSpeed);
+      this.avatar.setAvatarY(avatarY + this.fallSpeed);
     }
   }
 }

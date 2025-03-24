@@ -22,6 +22,7 @@ export class Assets {
           dead: { url: "res/girl-character/Dead (", count: 30, textures: [] },
         },
         fallThreshold: 50 / 100,
+        collisionThreshold: 90 / 100,
       },
       boy: {
         assetUrl: {
@@ -31,19 +32,20 @@ export class Assets {
           jump: { url: "res/boy-character/Jump (", count: 15, textures: [] },
           dead: { url: "res/boy-character/Dead (", count: 15, textures: [] },
         },
-        fallThreshold: 70 / 100,
+        fallThreshold: 60 / 100,
+        collisionThreshold: 80 / 100,
       },
     };
 
     this.slimeConfig = {
       blue: {
-        url: "res/Blue_Slime/Walk(", count: 8, textures: [],
+        url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [],
       },
       green: {
-        url: "res/Green_Slime/Walk(", count: 8, textures: [],
+        url: "res/slime-sprite/Green_Slime/Walk(", count: 8, textures: [],
       },
       red: {
-        url: "res/Red_Slime/Walk(", count: 8, textures: [],
+        url: "res/slime-sprite/Red_Slime/Walk(", count: 8, textures: [],
       },
     };
   }
@@ -53,6 +55,7 @@ export class Assets {
       { name: 'wallpaper_icon', url: 'res/icons/wallpaper_icon2.png' },
       { name: 'avatar_icon', url: 'res/icons/avatar_icon2.png' },
       { name: 'start_icon', url: 'res/icons/start_icon.png' },
+      { name: 'first_page_background', url: 'res/start_page_bg.png' },
     ];
 
     for (const asset of assets) {
@@ -67,11 +70,31 @@ export class Assets {
 
   async loadSlimeAssets() {
     for (const [key, item] of Object.entries(this.slimeConfig)) {
-      const textures = await this._loadTextures(item.url, item.count);
+      const textures = await this._loadSlimeTextures(item.url, item.count);
       this.slimeConfig[key].textures = textures
     }
   }
 
+  async _loadSlimeTextures(baseUrl, count) {
+    const texturePromises = [];
+    for (let i = 1; i <= count; i++) {
+      const originalTexture = await PIXI.Assets.load(`${baseUrl}${i}).png`);
+      const mirroredTexture = this._createMirroredTexture(originalTexture);
+      texturePromises.push(mirroredTexture);
+    }
+    return await Promise.all(texturePromises);
+  }
+
+  _createMirroredTexture(originalTexture) {
+    return new PIXI.Texture(
+      originalTexture.baseTexture,
+      originalTexture.frame,
+      originalTexture.orig,
+      originalTexture.trim,
+      originalTexture.rotate,
+      { x: -1, y: 1 }
+    );
+  }
   async loadAvatarAssets() {
     for (const [avatarType, animations] of Object.entries(this.avatarConfig)) {
       for (const [animationKey, { url, count }] of Object.entries(animations.assetUrl)) {
@@ -110,9 +133,25 @@ export class Assets {
     return this.avatarConfig[avatarType].assetUrl;
   }
 
+  getAvatarCollisionThreshold() {
+    const currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
+    const avatarConfig = currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
+    return avatarConfig.collisionThreshold;
+  }
+
   getAvatarFallThreshold() {
     const currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
     const avatarConfig = currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
     return avatarConfig.fallThreshold;
+  }
+
+  getBlueSlimeTextures() {
+    return this.slimeConfig.blue.textures;
+  }
+  getGreenSlimeTextures() {
+    return this.slimeConfig.green.textures;
+  }
+  getRedSlimeTextures() {
+    return this.slimeConfig.red.textures;
   }
 }

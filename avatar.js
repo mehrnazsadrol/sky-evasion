@@ -10,6 +10,7 @@ export class Avatar {
     };
     this.activeAnimation = null;
     this.currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
+    this.state = 'idle';
   }
 
   /**
@@ -73,11 +74,7 @@ export class Avatar {
    * Plays the specified animation.
    * @param {string} animationKey - The key of the animation to play.
    */
-  playAnimation(animationKey) {
-    if (!this.animations[animationKey]) {
-      console.warn(`Animation "${animationKey}" not found.`);
-      return;
-    }
+  _playAnimation(animationKey = 'idle') {
 
     if (this.activeAnimation) {
       this.activeAnimation.visible = false;
@@ -89,20 +86,13 @@ export class Avatar {
     this.activeAnimation.play();
   }
 
-  playIdle() {
-    this.playAnimation('idle');
-  }
-
-  playWalk() {
-    this.playAnimation('walk');
-  }
-
-  playRun() {
-    this.playAnimation('run');
-  }
-
-  playJump() {
-    this.playAnimation('jump');
+  setAvatarState(state) {
+    if (!this.animations[state]) {
+      console.warn(`Animation "${state}" not found.`);
+      return;
+    }
+    this.state = state;
+    this._playAnimation(state);
   }
 
   /**
@@ -131,5 +121,9 @@ export class Avatar {
 
   setAvatarY(y) {
     this.activeAnimation.y = y;
+  }
+
+  getAvatarState() {
+    return this.state;
   }
 }

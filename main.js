@@ -21,18 +21,24 @@ import { Assets } from './assets.js';
     height: c_height,
     backgroundColor: canvas_bg_color,
   });
-  app.ticker.autoStart = false;
+  const assets = new Assets();
+  await assets.loadAssets();
 
+  const bg_container = new PIXI.Container();
+  const start_bg = assets.getTexture('first_page_background');
+  const bg_sprite = new PIXI.Sprite(start_bg);
+  bg_sprite.width = c_width;
+  bg_sprite.height = c_height;
+  bg_container.addChild(bg_sprite);
+  app.stage.addChild(bg_container);
   canvas_container.style.display = "none";
+  app.ticker.autoStart = false;
 
   document.body.appendChild(app.canvas);
   app.canvas.style.position = "absolute";
   app.canvas.style.top = "50%";
   app.canvas.style.left = "50%";
   app.canvas.style.transform = "translate(-50%, -50%)";
-
-  const assets = new Assets();
-  await assets.loadAssets();
 
   const firstPageContainer = new PIXI.Container();
   const buttonManager = new ButtonManager(
