@@ -1,17 +1,20 @@
+/**
+ * SettingButtonManager - Handles creation and management of setting buttons.
+ */
 export class SettingButtonManager {
   constructor(
     c_width,
     c_height,
     loadAvatarOptionsScreen,
-    assets) {
-
+    assets
+  ) {
     this.c_width = c_width;
     this.c_height = c_height;
     this.assets = assets;
     this.canvas_bg_color = this.assets.getCanvasBackgroundColor();
     this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
-
     this.OptionsContainer = null;
+
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
       distance: 5,
       blur: 4,
@@ -20,6 +23,11 @@ export class SettingButtonManager {
     });
   }
 
+  /**
+   * Creates and configures the character change button
+   * @async
+   * @returns {PIXI.Graphics} Interactive button
+   */
   async createCharacterChangeButton() {
     const iconW = 80;
     const iconH = 80;
@@ -36,7 +44,6 @@ export class SettingButtonManager {
     const wallpaperIcon = new PIXI.Sprite(avatarIconTexture);
     wallpaperIcon.width = iconW;
     wallpaperIcon.height = iconH;
-
     button.addChild(wallpaperIcon);
 
     button.x = 60;
@@ -56,5 +63,4 @@ export class SettingButtonManager {
 
     return button;
   }
-
 }

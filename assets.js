@@ -1,10 +1,18 @@
-
+/**
+ * Assets - Asset management class that handles:
+ * - Loading and caching of all game asset textures
+ * - Providing access to loaded assets
+ * - Managing different character configurations
+ * - Handling background and UI elements
+ */
 export class Assets {
   constructor() {
     this.textures = new Map();
+    
     this.cityBackgrounds = {
       1: { count: 5, textures: [] },
     };
+    
     this.avatarConfig = {
       girl: {
         assetUrl: {
@@ -29,6 +37,7 @@ export class Assets {
         collisionThreshold: 80 / 100,
       },
     };
+    
     this.slimeConfig = {
       blue: {
         url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [],
@@ -40,6 +49,7 @@ export class Assets {
         url: "res/slime-sprite/Red_Slime/Walk(", count: 8, textures: [],
       },
     };
+    
     this.cityBackgroundOptions = {
       baseUrl: "res/city-backgrounds/city-",
       count: 1,
@@ -48,13 +58,19 @@ export class Assets {
         0: 0xFFFFFF,
       },
     };
+    
     this.avatarOptions = {
       baseUrl: "res/avatar-options/",
       textures: [],
     }
+    
     this.canvas_bg_color = "#2D336B";
   }
 
+  /**
+   * Main asset loading method - loads all game assets
+   * @async
+   */
   async loadAssets() {
     const assets = [
       { name: 'avatar_icon', url: 'res/icons/avatar_icon2.png' },
@@ -74,6 +90,10 @@ export class Assets {
     await this.loadAvatarOptions();
   }
 
+  /**
+   * Loads city background options for selection screen
+   * @async
+   */
   async loadCityOptions() {
     const texturePromises = [];
     for (let i = 1; i <= this.cityBackgroundOptions.count; i++) {
@@ -82,6 +102,10 @@ export class Assets {
     this.cityBackgroundOptions.textures = await Promise.all(texturePromises);
   }
 
+  /**
+   * Loads avatar options for selection screen
+   * @async
+   */
   async loadAvatarOptions() {
     const texturePromises = [];
     texturePromises.push(PIXI.Assets.load(`${this.avatarOptions.baseUrl}girl-avatar.png`));
@@ -89,13 +113,22 @@ export class Assets {
     this.avatarOptions.textures = await Promise.all(texturePromises);
   }
 
+  /**
+   * Loads all slime assets
+   * @async
+   */
   async loadSlimeAssets() {
     for (const [key, item] of Object.entries(this.slimeConfig)) {
       const textures = await this._loadSlimeTextures(item.url, item.count);
-      this.slimeConfig[key].textures = textures
+      this.slimeConfig[key].textures = textures;
     }
   }
 
+  /**
+   * Helper method to load slime textures
+   * @private
+   * @async
+   */
   async _loadSlimeTextures(baseUrl, count) {
     const texturePromises = [];
     for (let i = 1; i <= count; i++) {
@@ -106,6 +139,10 @@ export class Assets {
     return await Promise.all(texturePromises);
   }
 
+  /**
+   * Creates horizontally mirrored version of a texture
+   * @private
+   */
   _createMirroredTexture(originalTexture) {
     return new PIXI.Texture(
       originalTexture.baseTexture,
@@ -116,6 +153,11 @@ export class Assets {
       { x: -1, y: 1 }
     );
   }
+
+  /**
+   * Loads all avatar animation assets
+   * @async
+   */
   async loadAvatarAssets() {
     for (const [avatarType, animations] of Object.entries(this.avatarConfig)) {
       for (const [animationKey, { url, count }] of Object.entries(animations.assetUrl)) {
@@ -124,7 +166,13 @@ export class Assets {
       }
     }
   }
-  async _loadTextures(baseUrl, count, slime) {
+
+  /**
+   * Helper method to load animation textures
+   * @private
+   * @async
+   */
+  async _loadTextures(baseUrl, count) {
     const texturePromises = [];
     for (let i = 1; i <= count; i++) {
       texturePromises.push(PIXI.Assets.load(`${baseUrl}${i}).png`));
@@ -132,6 +180,10 @@ export class Assets {
     return await Promise.all(texturePromises);
   }
 
+  /**
+   * Loads parallax background layers
+   * @async
+   */
   async loadCityBackgrounds() {
     for (const [key, item] of Object.entries(this.cityBackgrounds)) {
       const baseUrl = `res/city-backgrounds/city${key}/`;
@@ -142,53 +194,77 @@ export class Assets {
     }
   }
 
+  // ========== PUBLIC METHODS ========== //
+
+  /**
+   * Gets a cached texture by name
+   */
   getTexture(name) {
     return this.textures.get(name);
   }
 
+  /**
+   * Gets all city background layers
+   */
   getCityBackgrounds() {
     return this.cityBackgrounds[1];
   }
 
+  /**
+   * Gets animation textures for an avatar type
+   */
   getAvatarTextures(avatarType) {
     return this.avatarConfig[avatarType].assetUrl;
   }
 
+  /**
+   * Gets collision threshold for the current avatar
+   */
   getAvatarCollisionThreshold() {
     const currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
     const avatarConfig = currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
     return avatarConfig.collisionThreshold;
   }
 
+  /**
+   * Gets fall threshold for the current avatar
+   */
   getAvatarFallThreshold() {
     const currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
     const avatarConfig = currentAvatarIndex === 0 ? this.avatarConfig['girl'] : this.avatarConfig['boy'];
     return avatarConfig.fallThreshold;
   }
 
-  getBlueSlimeTextures() {
-    return this.slimeConfig.blue.textures;
-  }
-  getGreenSlimeTextures() {
-    return this.slimeConfig.green.textures;
-  }
-  getRedSlimeTextures() {
-    return this.slimeConfig.red.textures;
-  }
+  // Slime texture getters
+  getBlueSlimeTextures() { return this.slimeConfig.blue.textures; }
+  getGreenSlimeTextures() { return this.slimeConfig.green.textures; }
+  getRedSlimeTextures() { return this.slimeConfig.red.textures; }
 
+  /**
+   * Gets standard slime texture width
+   */
   getSlimeTextureWidth() {
     return this.slimeConfig.blue.textures[0].width;
   }
 
+  /**
+   * Gets avatar option textures for selection screen
+   */
   getAvatarOptionTextures() {
     return this.avatarOptions.textures;
   }
 
+  /**
+   * Gets text color for current background
+   */
   getBackgroundTextColor() {
     const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
     return this.cityBackgroundOptions.textColors[currentBackgroundIndex];
   }
 
+  /**
+   * Gets canvas background color
+   */
   getCanvasBackgroundColor() {
     return this.canvas_bg_color;
   }

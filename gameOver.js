@@ -1,12 +1,16 @@
+/**
+ * GameOver - Handles the game over screen and functionality.
+ * 
+ * @param {PIXI.Container} gameOverContainer - Container for game over UI elements
+ * @param {SettingButtonManager} settingButtonManager - Manages character change button
+ * @param {number} c_width - Canvas width
+ * @param {number} c_height - Canvas height
+ * @param {function} restartGame - Callback to restart the game
+ * @param {HUD} hud - Heads-up display controller for score data
+ * @param {Assets} assets - Asset manager for textures and colors
+ */
 export class GameOver {
-  constructor(
-    gameOverContainer,
-    settingButtonManager,
-    c_width,
-    c_height,
-    restartGame,
-    hud,
-    assets) {
+  constructor(gameOverContainer, settingButtonManager, c_width, c_height, restartGame, hud, assets) {
 
     this.container = gameOverContainer;
     this.settingButtonManager = settingButtonManager;
@@ -15,6 +19,7 @@ export class GameOver {
     this.restartGame = restartGame;
     this.hud = hud;
     this.assets = assets;
+    
     const textColor = this.assets.getBackgroundTextColor();
 
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
@@ -23,9 +28,12 @@ export class GameOver {
       alpha: 0.6,
       color: textColor,
     });
-
   }
 
+  /**
+   * Initializes game over screen elements
+   * @async
+   */
   async init() {
     this._loadText();
     this._loadScore();
@@ -33,11 +41,20 @@ export class GameOver {
     await this._loadSettingButtons();
   }
 
+  /**
+   * Loads the character change button from SettingButtonManager
+   * @private
+   * @async
+   */
   async _loadSettingButtons() {
     const characterButton = await this.settingButtonManager.createCharacterChangeButton();
     this.container.addChild(characterButton);
   }
 
+  /**
+   * Creates and positions the "Game Over!" text
+   * @private
+   */
   _loadText() {
     const textColor = this.assets.getBackgroundTextColor();
     const style = new PIXI.TextStyle({
@@ -46,6 +63,7 @@ export class GameOver {
       fontWeight: 'bold',
       fill: textColor,
     });
+    
     const message = new PIXI.Text('Game Over!', style);
     message.anchor.set(0.5);
     message.x = this.c_width / 2;
@@ -53,6 +71,10 @@ export class GameOver {
     this.container.addChild(message);
   }
 
+  /**
+   * Creates the interactive restart button with hover effects
+   * @private
+   */
   _loadButtons() {
     const iconW = 200;
     const iconH = 200;
@@ -69,7 +91,6 @@ export class GameOver {
     const wallpaperIcon = new PIXI.Sprite(wallpaperIconTexture);
     wallpaperIcon.width = iconW;
     wallpaperIcon.height = iconH;
-
     rect.addChild(wallpaperIcon);
 
     const text = new PIXI.Text("Restart", {
@@ -99,8 +120,12 @@ export class GameOver {
     });
 
     this.container.addChild(rect);
-  };
+  }
 
+  /**
+   * Displays the current and highest scores
+   * @private
+   */
   _loadScore() {
     const textColor = this.assets.getBackgroundTextColor();
     const scoreStyle = {
@@ -124,13 +149,13 @@ export class GameOver {
     highestScoreText.y = this.c_height / 3;
     this.container.addChild(highestScoreText);
 
-    scoreStyle.fontSize = 35;
-    const currentScoreText = new PIXI.Text(`Your Score: ${currentScore}`,
+    const currentScoreText = new PIXI.Text(
+      `Your Score: ${currentScore}`,
       new PIXI.TextStyle({
-      ...scoreStyle,
-      fontSize: 35
-    })
-  );
+        ...scoreStyle,
+        fontSize: 35
+      })
+    );
     currentScoreText.anchor.set(0.5);
     currentScoreText.x = this.c_width / 2;
     currentScoreText.y = this.c_height / 3 + 60;

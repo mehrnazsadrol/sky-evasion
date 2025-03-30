@@ -1,7 +1,25 @@
 import { Slime } from './slime.js';
-export class GameController {
 
+/**
+ * GameController - Manages core game mechanics including:
+ * - Player movement (walking, running, jumping)
+ * - Environment generation (tiles, gaps, obstacles, slimes)
+ * - Collision detection
+ * - Game progression and difficulty scaling
+ * 
+ * @param {PIXI.Container} container - Main game container
+ * @param {BackgroundManager} backgroundManager - Manages parallax backgrounds
+ * @param {Avatar} avatar - Player character controller
+ * @param {number} c_width - Canvas width
+ * @param {number} c_height - Canvas height
+ * @param {number} totalFramesInOneSecond - Animation frame rate
+ * @param {function} gameOver - Callback when game ends
+ * @param {Assets} assets - Asset manager
+ * @param {HUD} hud - Heads-up display controller
+ */
+export class GameController {
   constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets, hud) {
+
     this.assets = assets;
     this.container = container;
     this.backgroundManager = backgroundManager;
@@ -14,15 +32,15 @@ export class GameController {
 
     this.maxWalkSpeed = 5;
     this.maxRunSpeed = 15;
-
-    this.tiles = [];
     this.speed = 0;
     this.targetSpeed = 0;
     this.velocity = 0.1;
+
     this.lastKeyPressTime = 0;
     this.doublePressThreshold = 300;
     this.isRightKeyPressed = false;
 
+    this.tiles = [];
     this.minRoadTileWidth = c_width;
     this.maxRoadTileWidth = c_width;
     this.minTileSpace = c_width / 15;
@@ -31,38 +49,38 @@ export class GameController {
     this.isJumping = false;
     this.isDoubleJumping = false;
     this.jumpStartTime = 0;
-    this.jumpDuration = 500;
+    this.jumpDuration = 500; // ms
     this.jumpHorizontalDistance = this.minTileSpace * 2;
     this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
     this.horizontalMovementPerFrame = null;
 
     this.maxTileSpace = this.jumpHorizontalDistance * 0.9;
     this.maxDifficulty = this.maxTileSpace - this.minTileSpace;
-
-
-    this.isFalling = false;
-    this.fallSpeed = 10;
-
     this.distanceTraveled = 0;
     this.baseDifficulty = 0;
     this.slimeSpawnChance = 0.3;
     this.maxSlimeSpawnChance = 0.8;
 
-
+    this.isFalling = false;
+    this.fallSpeed = 10;
     this.totalTilesGenerated = 0;
-    this.lastTilePassed = 0; 
+    this.lastTilePassed = 0;
     this.lastSlimeJumped = null;
 
     const avatarHeight = this.avatar.getAvatarHeight();
     this.avatar.addToStage(
       this.container,
       this.c_width / 2,
-      this.c_height - this.roadTileHeight - avatarHeight);
+      this.c_height - this.roadTileHeight - avatarHeight
+    );
 
     this.createEnvironment();
     this.initEventListeners();
   }
 
+  /**
+   * Sets up keyboard event listeners for player control
+   */
   initEventListeners() {
     const keys = {
       ArrowRight: false,
@@ -88,12 +106,18 @@ export class GameController {
     });
   }
 
+  /**
+   * Handles player movement based on keyboard input
+   * @param {Object} keys - Current key states
+   * @param {KeyboardEvent} event - Keyboard event
+   */
   handleMovement(keys, event) {
-    const avatarState = this.avatar.getAvatarState();
     const currentTime = Date.now();
 
+    // Right movement handling
     if (keys.ArrowRight || keys.d) {
       if (event.type === 'keydown') {
+        // Double tap detection for running
         if (currentTime - this.lastKeyPressTime < this.doublePressThreshold &&
           !this.isRightKeyPressed) {
           this.targetSpeed = this.maxRunSpeed;
@@ -104,9 +128,9 @@ export class GameController {
         }
         this.lastKeyPressTime = currentTime;
       }
-
       this.isRightKeyPressed = true;
     } else {
+      // Stop movement when right key released
       if (this.isRightKeyPressed) {
         this.targetSpeed = 0;
         if (!this.isJumping) {
@@ -117,14 +141,17 @@ export class GameController {
       this.isRightKeyPressed = false;
     }
 
+    // Jump handling
     if ((keys.ArrowUp || keys.w) && event.type === 'keydown') {
       if (!this.isJumping) {
+        // Initial jump
         this.isJumping = true;
         this.jumpStartTime = Date.now();
         this.horizontalMovementPerFrame = this.jumpHorizontalDistance /
           (this.totalFramesInOneSecond * this.jumpDuration / 1000);
         this.avatar.setAvatarState('jump');
       } else if (!this.isDoubleJumping) {
+        // Double jump
         this.isDoubleJumping = true;
         this.jumpStartTime = Date.now();
         this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance /
@@ -134,7 +161,11 @@ export class GameController {
     }
   }
 
+  /**
+   * Creates initial game environment with road tiles
+   */
   createEnvironment() {
+    // Add starting tile (full width)
     this.addTile(0, true);
 
     const totalRoadWidth = 2 * this.c_width;
@@ -148,6 +179,10 @@ export class GameController {
     this.minRoadTileWidth = this.c_width / 5;
   }
 
+  /**
+   * Gets the tile the avatar is currently standing on
+   * @returns {PIXI.Graphics|null} Current tile or null if not on any tile
+   */
   getCurrentTile() {
     const avatarX = this.avatar.getAvatarX();
     for (const tile of this.tiles) {
@@ -158,13 +193,21 @@ export class GameController {
     return null;
   }
 
+  /**
+   * Calculates space between tiles based on current difficulty
+   * @returns {number} Space between tiles
+   */
   getCurrentTileSpace() {
     const minSpace = this.minTileSpace;
     const maxSpace = this.minTileSpace + this.baseDifficulty;
     return Math.floor(Math.random() * (maxSpace - minSpace + 1)) + minSpace;
   }
 
-
+  /**
+   * Adds a new road tile to the game with slimes
+   * @param {number} x - X position for new tile
+   * @param {boolean} [isFirstTile=false] - Whether this is the starting tile
+   */
   addTile(x, isFirstTile = false) {
     const tileWidth = isFirstTile ? this.c_width :
       Math.floor(Math.random() * (this.maxRoadTileWidth - this.minRoadTileWidth + 1)) + this.minRoadTileWidth;
@@ -176,6 +219,7 @@ export class GameController {
 
     tile.x = x;
     tile.y = this.c_height - this.roadTileHeight;
+
     if (!isFirstTile && Math.random() < this.slimeSpawnChance) {
       const slimeCount = 1 + Math.floor(Math.random() * (1 + Math.floor(this.baseDifficulty / 2)));
       for (let i = 0; i < slimeCount; i++) {
@@ -191,6 +235,9 @@ export class GameController {
     this.tiles.push(tile);
   }
 
+  /**
+   * Handles jump physics and animation
+   */
   _handleJump() {
     const currentTime = Date.now();
     const elapsedTime = currentTime - this.jumpStartTime;
@@ -217,11 +264,14 @@ export class GameController {
     }
   }
 
+  /**
+   * Main game update loop called every frame
+   */
   update() {
     this.distanceTraveled += this.speed;
     this.baseDifficulty = Math.min(Math.floor(this.distanceTraveled / (2*this.c_width)), this.maxDifficulty);
-
     this.slimeSpawnChance = Math.min(0.3 + (this.baseDifficulty * 0.05), this.maxSlimeSpawnChance);
+
     if (this.isFalling) {
       this._handleFall();
       return;
@@ -233,17 +283,21 @@ export class GameController {
     } else {
       this.speed += (this.targetSpeed - this.speed) * this.velocity;
     }
+
     for (const tile of this.tiles) {
       tile.x -= this.speed;
-      if (tile.slimes)
-        for (const slime of tile.slimes)
+      if (tile.slimes) {
+        for (const slime of tile.slimes) {
           slime.setSlimeX(-this.speed);
+        }
+      }
     }
 
     if (!this.isJumping) {
       this._checkFellDown();
       this._checkSlimeCollision();
     }
+
     const currentTile = this.getCurrentTile();
     if (currentTile && currentTile.id > this.lastTilePassed) {
       const tilesPassed = currentTile.id - this.lastTilePassed;
@@ -254,8 +308,9 @@ export class GameController {
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
       const removedTile = this.tiles.shift();
       if (removedTile.slimes) {
-        for (const slime of removedTile.slimes)
+        for (const slime of removedTile.slimes) {
           this.container.removeChild(slime.animatedSlime);
+        }
       }
       this.container.removeChild(removedTile);
     }
@@ -267,10 +322,13 @@ export class GameController {
     }
 
     this.backgroundManager.updateBackgroundLayers(this.speed);
+    
     this.avatar.activeAnimation.x = this.c_width / 2 - this.avatar.activeAnimation.width / 2;
-
   }
 
+  /**
+   * Checks if avatar has fallen between tiles
+   */
   _checkFellDown() {
     const avatarWidth = this.avatar.getAvatarWidth();
     const avatarX = this.avatar.getAvatarX();
@@ -289,13 +347,15 @@ export class GameController {
         avatarX + avatarWidth * avatarFallThreshold < gapEnd
       ) {
         this.avatar.setAvatarX(gapStart - avatarWidth / 2);
-
         this.isFalling = true;
         break;
       }
     }
   }
 
+  /**
+   * Checks for collisions with slime obstacles
+   */
   _checkSlimeCollision() {
     const avatarX = this.avatar.getAvatarX();
     const avatarWidth = this.avatar.getAvatarWidth();
@@ -306,6 +366,7 @@ export class GameController {
         for (const slime of tile.slimes) {
           const slimeX = slime.animatedSlime.x;
           const slimeWidth = slime.animatedSlime.width;
+          
           if (this.isJumping || this.isDoubleJumping) {
             if (!slime.jumpedOver &&
               avatarX + avatarWidth * 0.7 > slimeX &&
@@ -314,7 +375,8 @@ export class GameController {
               this.hud.addScore(50);
               this.lastSlimeJumped = slime;
             }
-          } else if (
+          } 
+          else if (
             avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
             avatarX < slimeX + slimeWidth * avatarCollisionThreshold
           ) {
@@ -325,7 +387,9 @@ export class GameController {
     }
   }
 
-
+  /**
+   * Handles falling animation and game over
+   */
   _handleFall() {
     const avatarY = this.avatar.getAvatarY();
     if (avatarY > this.c_height) {

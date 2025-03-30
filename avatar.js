@@ -1,3 +1,6 @@
+/**
+ * Avatar - Manages the game character's animations and state in the game.
+ */
 export class Avatar {
   constructor(assets) {
     this.assets = assets;
@@ -8,14 +11,16 @@ export class Avatar {
       jump: null,
       dead: null,
     };
+
     this.activeAnimation = null;
     this.currentAvatarIndex = Number(localStorage.getItem('avatarIndex')) || 0;
     this.state = 'idle';
   }
 
   /**
-   * Loads assets for the avatar based on the selected avatar type (girl or boy).
-   * @param {number} c_width - The width of the container to calculate the avatar size.
+   * Loads all animations for the selected avatar type
+   * @param {number} c_width - Canvas width
+   * @async
    */
   async loadAnimation(c_width) {
     const avatarType = this.currentAvatarIndex === 0 ? 'girl' : 'boy';
@@ -31,29 +36,31 @@ export class Avatar {
   }
 
   /**
-   * Creates an animated sprite from an array of textures.
-   * @param {PIXI.Texture[]} textures - The textures for the animation.
-   * @param {string} animationKey - The key for the animation (e.g., "idle", "walk").
-   * @param {number} c_width - The width of the container to calculate the avatar size.
-   * @returns {PIXI.AnimatedSprite} - The configured animated sprite.
+   * Creates and configures an animated sprite
+   * @private
+   * @param {PIXI.Texture[]} textures - Array of animation frames
+   * @param {string} animationKey - Which animation this is
+   * @param {number} c_width
+   * @returns {PIXI.AnimatedSprite} Configured animated sprite
    */
   _createAnimatedSprite(textures, animationKey, c_width) {
     if (!Array.isArray(textures) || textures.length === 0) {
       throw new Error(`No textures found for animation: ${animationKey}`);
     }
     const sprite = new PIXI.AnimatedSprite(textures);
-    sprite.animationSpeed = animationKey === 'run'? 1 : 0.25;
+    sprite.animationSpeed = animationKey === 'run' ? 1 : 0.25;
     sprite.loop = true;
     sprite.width = c_width / 10;
     sprite.height = (c_width / 10) * (textures[0].height / textures[0].width);
+
     return sprite;
   }
 
   /**
-   * Adds all animations to the stage and sets the initial active animation.
-   * @param {PIXI.Container} container - The container to add the animations to.
-   * @param {number} x - The x-coordinate for the avatar's position.
-   * @param {number} y - The y-coordinate for the avatar's position.
+   * Adds all animations to the stage and initializes the avatar
+   * @param {PIXI.Container} container - Parent container
+   * @param {number} x - Initial x
+   * @param {number} y - Initial y
    */
   addToStage(container, x, y) {
     for (const animation of Object.values(this.animations)) {
@@ -71,11 +78,11 @@ export class Avatar {
   }
 
   /**
-   * Plays the specified animation.
-   * @param {string} animationKey - The key of the animation to play.
+   * Internal method to switch animations
+   * @private
+   * @param {string} animationKey - Which animation to play (defaults to idle)
    */
   _playAnimation(animationKey = 'idle') {
-
     if (this.activeAnimation) {
       this.activeAnimation.visible = false;
       this.activeAnimation.stop();
@@ -86,6 +93,10 @@ export class Avatar {
     this.activeAnimation.play();
   }
 
+  /**
+   * Changes the avatar's animation state
+   * @param {string} state - New state
+   */
   setAvatarState(state) {
     if (!this.animations[state]) {
       console.warn(`Animation "${state}" not found.`);
@@ -95,35 +106,56 @@ export class Avatar {
     this._playAnimation(state);
   }
 
+  // ========== GETTER METHODS ========== //
+
   /**
-   * Returns the height of the idle animation.
-   * @returns {number} - The height of the idle animation.
+   * Gets the standard height of the avatar animation
    */
   getAvatarHeight() {
     return this.animations.idle.height;
   }
 
+  /**
+   * Gets the standard width of the avatar animation
+   */
   getAvatarWidth() {
     return this.animations.idle.width;
   }
 
+  /**
+   * Gets current x coordinate
+   */
   getAvatarX() {
     return this.activeAnimation.x;
   }
 
+  /**
+   * Gets current y coordinate
+   */
   getAvatarY() {
     return this.activeAnimation.y;
   }
 
+  /**
+   * Gets current animation state
+   */
+  getAvatarState() {
+    return this.state;
+  }
+
+  // ========== SETTER METHODS ========== //
+
+  /**
+   * Sets x coordinate
+   */
   setAvatarX(x) {
     this.activeAnimation.x = x;
   }
 
+  /**
+   * Sets y coordinate
+   */
   setAvatarY(y) {
     this.activeAnimation.y = y;
-  }
-
-  getAvatarState() {
-    return this.state;
   }
 }

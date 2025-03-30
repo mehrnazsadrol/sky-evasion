@@ -1,5 +1,16 @@
+/**
+ * AvatarOptions - The class that handles creation and interaction of avatar selection screen.
+ * 
+ * Inputs:
+ * @param {PIXI.Container} container - The container to add avatar options to
+ * @param {Assets} assets - Asset manager for textures and colors
+ * @param {number} c_width - Canvas width for positioning elements
+ * @param {number} c_height - Canvas height for positioning elements
+ * @param {function} onAvatarSelected - Callback when avatar is selected (receives avatarIndex)
+ */
 export class AvatarOptions {
   constructor(container, assets, c_width, c_height, onAvatarSelected) {
+
     this.container = container;
     this.assets = assets;
     this.c_width = c_width;
@@ -10,12 +21,20 @@ export class AvatarOptions {
     this.onAvatarSelected = onAvatarSelected;
   }
 
+  /**
+   * Loads the avatar selection screen
+   * @async
+   */
   async init() {
     this._setupBackground();
     this._setupText();
     await this._setupAvatarOptions();
   }
 
+  /**
+   * Creates the background rectangle for the screen
+   * @private
+   */
   _setupBackground() {
     const bgRect = new PIXI.Graphics();
     bgRect.beginFill(this.canvas_bg_color);
@@ -24,6 +43,10 @@ export class AvatarOptions {
     this.container.addChild(bgRect);
   }
 
+  /**
+   * Creates and positions the title text
+   * @private
+   */
   _setupText() {
     const textStyle = new PIXI.TextStyle({
       fontFamily: "ubuntu-medium",
@@ -38,8 +61,12 @@ export class AvatarOptions {
     this.startY = text.height + 10;
   }
 
+  /**
+   * Creates interactive avatar selection options with hover effects
+   * @private
+   * @async
+   */
   async _setupAvatarOptions() {
-
     const dropShadowFilter = new PIXI.filters.DropShadowFilter({
       distance: 5,
       blur: 4,
@@ -75,7 +102,6 @@ export class AvatarOptions {
       const avatar = new PIXI.Sprite(texture);
       avatar.width = avatar_sprite_w;
       avatar.height = avatar_sprite_h;
-
       rect.addChild(avatar);
 
       const remainingWidth = containerWidth - avatarWidths.reduce((sum, width) => sum + width, 0);
@@ -105,10 +131,14 @@ export class AvatarOptions {
     this.container.addChild(avatarContainer);
   }
 
+  /**
+   * Handles avatar selection and invokes callback
+   * @private
+   * @param {number} avatarIndex - Index of selected avatar
+   */
   _onAvatarSelected(avatarIndex) {
     if (this.onAvatarSelected) {
       this.onAvatarSelected(avatarIndex);
     }
   }
-
 }

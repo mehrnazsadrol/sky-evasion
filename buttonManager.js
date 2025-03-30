@@ -1,5 +1,16 @@
+/**
+ * ButtonManager - A class that Handles creation and interaction of buttons on the first page (main menu).
+ * 
+ * Inputs:
+ * @param {number} c_width - Canvas width for positioning elements
+ * @param {number} c_height - Canvas height for positioning elements
+ * @param {PIXI.Container} firstPageContainer - Container to add buttons to
+ * @param {SettingButtonManager} settingButtonManager - Manager for character change button
+ * @param {Assets} assets - Asset manager for textures and colors
+ * @param {function} startGame - Callback function to start the game
+ */
 export class ButtonManager {
-  constructor( c_width, c_height,
+  constructor(c_width, c_height,
     firstPageContainer,
     settingButtonManager,
     assets,
@@ -20,12 +31,19 @@ export class ButtonManager {
     });
   }
 
+  /**
+   * Loads the main page by creating the UI elements (title, start button, character change button)
+   */
   async loadPage() {
     this._createText();
     await this._createStartButton();
     await this._createCharacterChangeButton();
   }
 
+  /**
+   * Creates and positions the game title text
+   * @private
+   */
   _createText() {
     const textColor = this.assets.getCanvasBackgroundColor();
     const style = new PIXI.TextStyle({
@@ -41,16 +59,26 @@ export class ButtonManager {
     this.firstPageContainer.addChild(message);
   }
 
+  /**
+   * Creates the character change button using SettingButtonManager
+   * @private
+   * @async
+   */
   async _createCharacterChangeButton() {
     const button = await this.settingButtonManager.createCharacterChangeButton();
     this.firstPageContainer.addChild(button);
   }
 
+  /**
+   * Creates the interactive start game button
+   * @private
+   * @async
+   */
   async _createStartButton() {
     const iconW = 200;
     const iconH = 200;
 
-    
+
     const rect = new PIXI.Graphics();
     rect.beginFill(0xfffade, 0);
     rect.drawRect(0, 0, iconW, iconH);
@@ -73,11 +101,11 @@ export class ButtonManager {
       align: "center",
     });
     text.x = (iconW - text.width) / 2;
-    text.y = (iconH - text.height)/2;
+    text.y = (iconH - text.height) / 2;
     rect.addChild(text);
 
-    rect.x = (this.c_width - iconW)/2;
-    rect.y = (this.c_height - iconH) * 2/3;
+    rect.x = (this.c_width - iconW) / 2;
+    rect.y = (this.c_height - iconH) * 2 / 3;
 
     rect.on("pointerover", () => {
       rect.filters = [this.dropShadowFilter];
