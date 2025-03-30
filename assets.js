@@ -190,6 +190,10 @@ export class Assets {
     return this.slimeConfig.red.textures;
   }
 
+  getSlimeTextureWidth() {
+    return this.slimeConfig.blue.textures[0].width;
+  }
+
   getCityOptionTextures() {
     return this.cityBackgroundOptions.textures;
   };
