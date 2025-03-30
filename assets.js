@@ -36,7 +36,6 @@ export class Assets {
         collisionThreshold: 80 / 100,
       },
     };
-
     this.slimeConfig = {
       blue: {
         url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [],
@@ -48,6 +47,25 @@ export class Assets {
         url: "res/slime-sprite/Red_Slime/Walk(", count: 8, textures: [],
       },
     };
+    this.cityBackgroundOptions = {
+      baseUrl: "res/city-backgrounds/city-",
+      count: 8,
+      textures: [],
+      textColors: {
+        0: 0xFFFFFF,
+        1: 0xfff4f3,
+        2: 0x8e4862,
+        3: 0x000000,
+        4: 0xA5158C,
+        5: 0x211C84,
+        6: 0x261FB3,
+        7: 0xFFFFFF
+      },
+    };
+    this.avatarOptions = {
+      baseUrl: "res/avatar-options/",
+      textures: [],
+    }
   }
 
   async loadAssets() {
@@ -66,6 +84,23 @@ export class Assets {
     await this.loadCityBackgrounds();
     await this.loadAvatarAssets();
     await this.loadSlimeAssets();
+    await this.loadCityOptions();
+    await this.loadAvatarOptions();
+  }
+
+  async loadCityOptions() {
+    const texturePromises = [];
+    for (let i = 1; i <= this.cityBackgroundOptions.count; i++) {
+      texturePromises.push(PIXI.Assets.load(`${this.cityBackgroundOptions.baseUrl}${i}.png`));
+    }
+    this.cityBackgroundOptions.textures = await Promise.all(texturePromises);
+  }
+
+  async loadAvatarOptions() {
+    const texturePromises = [];
+    texturePromises.push(PIXI.Assets.load(`${this.avatarOptions.baseUrl}girl-avatar.png`));
+    texturePromises.push(PIXI.Assets.load(`${this.avatarOptions.baseUrl}boy-avatar.png`));
+    this.avatarOptions.textures = await Promise.all(texturePromises);
   }
 
   async loadSlimeAssets() {
@@ -153,5 +188,22 @@ export class Assets {
   }
   getRedSlimeTextures() {
     return this.slimeConfig.red.textures;
+  }
+
+  getCityOptionTextures() {
+    return this.cityBackgroundOptions.textures;
+  };
+
+  getCityOptionCount() {
+    return this.cityBackgroundOptions.count;
+  }
+
+  getAvatarOptionTextures() {
+    return this.avatarOptions.textures;
+  }
+
+  getBackgroundTextColor() {
+    const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
+    return this.cityBackgroundOptions.textColors[currentBackgroundIndex];
   }
 }

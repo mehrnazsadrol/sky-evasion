@@ -1,7 +1,7 @@
 import { Slime } from './slime.js';
 export class GameController {
 
-  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets) {
+  constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets, hud) {
     this.assets = assets;
     this.container = container;
     this.backgroundManager = backgroundManager;
@@ -10,12 +10,7 @@ export class GameController {
     this.c_height = c_height;
     this.totalFramesInOneSecond = totalFramesInOneSecond;
     this.gameOver = gameOver;
-
-    this.minRoadTileWidth = c_width / 5;
-    this.maxRoadTileWidth = c_width;
-    this.minTileSpace = c_width / 15;
-    this.maxTileSpace = c_width / 10;
-    this.roadTileHeight = c_height / 10;
+    this.hud = hud;
 
     this.maxWalkSpeed = 5;
     this.maxRunSpeed = 15;
@@ -28,16 +23,35 @@ export class GameController {
     this.doublePressThreshold = 300;
     this.isRightKeyPressed = false;
 
+    this.minRoadTileWidth = c_width;
+    this.maxRoadTileWidth = c_width;
+    this.minTileSpace = c_width / 15;
+    this.roadTileHeight = c_height / 10;
+
     this.isJumping = false;
     this.isDoubleJumping = false;
     this.jumpStartTime = 0;
     this.jumpDuration = 500;
     this.jumpHorizontalDistance = this.minTileSpace * 2;
-    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) /2  ;
+    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
     this.horizontalMovementPerFrame = null;
+
+    this.maxTileSpace = this.jumpHorizontalDistance * 0.9;
+    this.maxDifficulty = this.maxTileSpace - this.minTileSpace;
+
 
     this.isFalling = false;
     this.fallSpeed = 10;
+
+    this.distanceTraveled = 0;
+    this.baseDifficulty = 0;
+    this.slimeSpawnChance = 0.3;
+    this.maxSlimeSpawnChance = 0.8;
+
+
+    this.totalTilesGenerated = 0;
+    this.lastTilePassed = 0; 
+    this.lastSlimeJumped = null;
 
     const avatarHeight = this.avatar.getAvatarHeight();
     this.avatar.addToStage(
@@ -77,70 +91,83 @@ export class GameController {
   handleMovement(keys, event) {
     const avatarState = this.avatar.getAvatarState();
     const currentTime = Date.now();
-    
-    // Handle right movement (walk/run)
+
     if (keys.ArrowRight || keys.d) {
-        // Check for double press to run
-        if (event.type === 'keydown') {
-            if (currentTime - this.lastKeyPressTime < this.doublePressThreshold && 
-                !this.isRightKeyPressed) {
-                // Double press detected - run
-                this.targetSpeed = this.maxRunSpeed;
-                this.avatar.setAvatarState('run');
-            } else if (!this.isRightKeyPressed) {
-                // Single press - walk
-                this.targetSpeed = this.maxWalkSpeed;
-                this.avatar.setAvatarState('walk');
-            }
-            this.lastKeyPressTime = currentTime;
+      if (event.type === 'keydown') {
+        if (currentTime - this.lastKeyPressTime < this.doublePressThreshold &&
+          !this.isRightKeyPressed) {
+          this.targetSpeed = this.maxRunSpeed;
+          this.avatar.setAvatarState('run');
+        } else if (!this.isRightKeyPressed) {
+          this.targetSpeed = this.maxWalkSpeed;
+          this.avatar.setAvatarState('walk');
         }
-        
-        this.isRightKeyPressed = true;
+        this.lastKeyPressTime = currentTime;
+      }
+
+      this.isRightKeyPressed = true;
     } else {
-        // Right key released
-        if (this.isRightKeyPressed) {
-            this.targetSpeed = 0;
-            if (!this.isJumping) {
-                this.avatar.setAvatarState('idle');
-            }
+      if (this.isRightKeyPressed) {
+        this.targetSpeed = 0;
+        if (!this.isJumping) {
+          this.avatar.setAvatarState('idle');
         }
-        this.isRightKeyPressTime = 0;
-        this.isRightKeyPressed = false;
+      }
+      this.isRightKeyPressTime = 0;
+      this.isRightKeyPressed = false;
     }
 
-    // Handle jumping
     if ((keys.ArrowUp || keys.w) && event.type === 'keydown') {
-        if (!this.isJumping) {
-            // First jump
-            this.isJumping = true;
-            this.jumpStartTime = Date.now();
-            this.horizontalMovementPerFrame = this.jumpHorizontalDistance / 
-                (this.totalFramesInOneSecond * this.jumpDuration / 1000);
-            this.avatar.setAvatarState('jump');
-        } else if (!this.isDoubleJumping) {
-            // Double jump
-            this.isDoubleJumping = true;
-            this.jumpStartTime = Date.now();
-            this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance / 
-                (this.totalFramesInOneSecond * this.jumpDuration / 1000);
-            this.avatar.setAvatarState('jump');
-        }
+      if (!this.isJumping) {
+        this.isJumping = true;
+        this.jumpStartTime = Date.now();
+        this.horizontalMovementPerFrame = this.jumpHorizontalDistance /
+          (this.totalFramesInOneSecond * this.jumpDuration / 1000);
+        this.avatar.setAvatarState('jump');
+      } else if (!this.isDoubleJumping) {
+        this.isDoubleJumping = true;
+        this.jumpStartTime = Date.now();
+        this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance /
+          (this.totalFramesInOneSecond * this.jumpDuration / 1000);
+        this.avatar.setAvatarState('jump');
+      }
     }
-}
+  }
 
   createEnvironment() {
+    this.addTile(0, true);
+
     const totalRoadWidth = 2 * this.c_width;
-    let currentX = 0;
+    let currentX = this.minRoadTileWidth;
     while (currentX < totalRoadWidth) {
       this.addTile(currentX);
       const tileWidth = this.tiles[this.tiles.length - 1].width;
       const space = Math.floor(Math.random() * (this.maxTileSpace - this.minTileSpace + 1)) + this.minTileSpace;
       currentX += tileWidth + space;
     }
+    this.minRoadTileWidth = this.c_width / 5;
   }
 
-  addTile(x) {
-    const tileWidth = Math.floor(Math.random() * (this.maxRoadTileWidth - this.minRoadTileWidth + 1)) + this.minRoadTileWidth;
+  getCurrentTile() {
+    const avatarX = this.avatar.getAvatarX();
+    for (const tile of this.tiles) {
+      if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
+        return tile;
+      }
+    }
+    return null;
+  }
+
+  getCurrentTileSpace() {
+    const minSpace = this.minTileSpace;
+    const maxSpace = this.minTileSpace + this.baseDifficulty;
+    return Math.floor(Math.random() * (maxSpace - minSpace + 1)) + minSpace;
+  }
+
+
+  addTile(x, isFirstTile = false) {
+    const tileWidth = isFirstTile ? this.c_width :
+      Math.floor(Math.random() * (this.maxRoadTileWidth - this.minRoadTileWidth + 1)) + this.minRoadTileWidth;
 
     const tile = new PIXI.Graphics();
     tile.beginFill(0x808080);
@@ -149,13 +176,18 @@ export class GameController {
 
     tile.x = x;
     tile.y = this.c_height - this.roadTileHeight;
-    if (Math.random() < 0.5) {
-      const slimeX = tile.x + Math.random() * tile.width;
-      const slimeY = tile.y;
-      tile.slime = new Slime(this.container, slimeX, slimeY, this.assets, 'blue');
+    if (!isFirstTile && Math.random() < this.slimeSpawnChance) {
+      const slimeCount = 1 + Math.floor(Math.random() * (1 + Math.floor(this.baseDifficulty / 2)));
+      for (let i = 0; i < slimeCount; i++) {
+        const slimeX = tile.x + Math.random() * tile.width;
+        const slimeY = tile.y;
+        if (!tile.slimes) tile.slimes = [];
+        tile.slimes.push(new Slime(this.container, slimeX, slimeY, this.assets, 'blue'));
+      }
     }
 
     this.container.addChild(tile);
+    tile.id = this.totalTilesGenerated++;
     this.tiles.push(tile);
   }
 
@@ -179,13 +211,20 @@ export class GameController {
       }
       if (this.isRightKeyPressed) {
         this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
-    } else {
+      } else {
         this.avatar.setAvatarState('idle');
-    }
+      }
     }
   }
 
   update() {
+    this.distanceTraveled += this.speed;
+    this.baseDifficulty = Math.min(Math.floor(this.distanceTraveled / (2*this.c_width)), this.maxDifficulty);
+
+    this.slimeSpawnChance = Math.min(
+      0.3 + (this.baseDifficulty * 0.05),
+      this.maxSlimeSpawnChance
+    );
     if (this.isFalling) {
       this._handleFall();
       return;
@@ -207,6 +246,12 @@ export class GameController {
       this._checkFellDown();
       this._checkSlimeCollision();
     }
+    const currentTile = this.getCurrentTile();
+    if (currentTile && currentTile.id > this.lastTilePassed) {
+      const tilesPassed = currentTile.id - this.lastTilePassed;
+      this.hud.addScore(10 * tilesPassed);
+      this.lastTilePassed = currentTile.id;
+    }
 
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
       const removedTile = this.tiles.shift();
@@ -218,7 +263,7 @@ export class GameController {
 
     const lastTile = this.tiles[this.tiles.length - 1];
     if (lastTile && lastTile.x + lastTile.width < 2 * this.c_width) {
-      const space = Math.floor(Math.random() * (this.maxTileSpace - this.minTileSpace + 1)) + this.minTileSpace;
+      const space = this.getCurrentTileSpace();
       this.addTile(lastTile.x + lastTile.width + space);
     }
 
@@ -261,19 +306,30 @@ export class GameController {
 
     for (const tile of this.tiles) {
       if (tile.slime) {
-        const slime = tile.slime;
-        const slimeX = slime.animatedSlime.x;
-        const slimeWidth = slime.animatedSlime.width;
-
-        if (
-          avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
-          avatarX + avatarWidth * avatarCollisionThreshold < slimeX + slimeWidth
-        ) {
-          this.gameOver();
+        for (const slime of tile.slimes) {
+          const slimeX = slime.animatedSlime.x;
+          const slimeWidth = slime.animatedSlime.width;
+          if (this.isJumping || this.isDoubleJumping) {
+            // Check if jumping over slime (give points)
+            if (!slime.jumpedOver &&
+              avatarX + avatarWidth * 0.7 > slimeX &&
+              avatarX < slimeX + slimeWidth * 0.7) {
+              slime.jumpedOver = true;
+              this.hud.addScore(50);
+              this.lastSlimeJumped = slime;
+            }
+          } else if (
+            // Check for collision when not jumping
+            avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
+            avatarX < slimeX + slimeWidth * avatarCollisionThreshold
+          ) {
+            this.gameOver();
+          }
         }
       }
     }
   }
+
 
   _handleFall() {
     const avatarY = this.avatar.getAvatarY();

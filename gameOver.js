@@ -1,32 +1,53 @@
 export class GameOver {
-  constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets) {
+  constructor(
+    gameOverContainer,
+    settingButtonManager,
+    c_width,
+    c_height,
+    restartGame,
+    hud,
+    assets) {
+
     this.container = gameOverContainer;
+    this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
     this.restartGame = restartGame;
     this.hud = hud;
     this.assets = assets;
+    const textColor = this.assets.getBackgroundTextColor();
+
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
       distance: 5,
       blur: 4,
       alpha: 0.6,
-      color: 0xfffade,
+      color: textColor,
     });
 
   }
 
-  init() {
+  async init() {
     this._loadText();
     this._loadScore();
     this._loadButtons();
+    await this._loadSettingButtons();
+  }
+
+  async _loadSettingButtons() {
+    const wallpaperButton = await this.settingButtonManager.createWallpaperButton();
+    this.container.addChild(wallpaperButton);
+
+    const characterButton = await this.settingButtonManager.createCharacterChangeButton();
+    this.container.addChild(characterButton);
   }
 
   _loadText() {
+    const textColor = this.assets.getBackgroundTextColor();
     const style = new PIXI.TextStyle({
       fontFamily: 'ubuntu-medium',
-      fontSize: 50,
+      fontSize: 55,
       fontWeight: 'bold',
-      fill: '#ffffff',
+      fill: textColor,
     });
     const message = new PIXI.Text('Game Over!', style);
     message.anchor.set(0.5);
@@ -84,30 +105,38 @@ export class GameOver {
   };
 
   _loadScore() {
-    const scoreStyle = new PIXI.TextStyle({
+    const textColor = this.assets.getBackgroundTextColor();
+    const scoreStyle = {
       fontFamily: 'ubuntu-medium',
-      fill: '#ffffff',
-    });
+      fontWeight: 'bold',
+      fill: textColor,
+    };
 
     const currentScore = this.hud.getScore();
     const highestScore = this.hud.getHighestScore();
 
-    const highestScoreText = new PIXI.Text(`Your Highest Score: ${highestScore}`, {
-      ...scoreStyle,
-      fontSize: 10,
-    });
+    const highestScoreText = new PIXI.Text(
+      `Your Highest Score: ${highestScore}`,
+      new PIXI.TextStyle({
+        ...scoreStyle,
+        fontSize: 25
+      })
+    );
     highestScoreText.anchor.set(0.5);
     highestScoreText.x = this.c_width / 2;
     highestScoreText.y = this.c_height / 3;
     this.container.addChild(highestScoreText);
 
-    const currentScoreText = new PIXI.Text(`Your Score: ${currentScore}`, {
+    scoreStyle.fontSize = 35;
+    const currentScoreText = new PIXI.Text(`Your Score: ${currentScore}`,
+      new PIXI.TextStyle({
       ...scoreStyle,
-      fontSize: 30,
-    });
+      fontSize: 35
+    })
+  );
     currentScoreText.anchor.set(0.5);
     currentScoreText.x = this.c_width / 2;
-    currentScoreText.y = this.c_height / 3 + 50;
+    currentScoreText.y = this.c_height / 3 + 60;
     this.container.addChild(currentScoreText);
   }
 }

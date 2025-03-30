@@ -1,9 +1,10 @@
 export class AvatarOptions {
-  constructor(c_width, c_height, canvas_bg_color, onAvatarSelected) {
+  constructor(container, assets, c_width, c_height, canvas_bg_color, onAvatarSelected) {
+    this.container = container;
+    this.assets = assets;
     this.c_width = c_width;
     this.c_height = c_height;
     this.canvas_bg_color = canvas_bg_color;
-    this.container = new PIXI.Container();
     this.avatarSprites = [];
     this.avatarRects = [];
     this.onAvatarSelected = onAvatarSelected;
@@ -55,15 +56,12 @@ export class AvatarOptions {
 
     const avatar_sprite_h = containerHeight / 2;
 
-    const basePath = "res/avatar-options/";
     const num_avatars = 2;
     const avatarWidths = [];
+    const avatarTextures = this.assets.getAvatarOptionTextures();
 
     for (let i = 0; i < num_avatars; i++) {
-
-      const c = (i === 0) ? "girl" : "boy";
-      const imagePath = `${basePath}${c}-avatar.png`;
-      const texture = await PIXI.Assets.load(imagePath);
+      const texture = avatarTextures[i];
 
       const aspectRatio = texture.width / texture.height;
       const avatar_sprite_w = avatar_sprite_h * aspectRatio;
@@ -113,7 +111,4 @@ export class AvatarOptions {
     }
   }
 
-  getContainer() {
-    return this.container;
-  }
 }

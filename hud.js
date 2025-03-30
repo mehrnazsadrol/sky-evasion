@@ -1,23 +1,25 @@
 export class Hud {
-  constructor(container, c_width, c_height) {
+  constructor(container, c_width, c_height, assets) {
     this.container = container;
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
+    this.assets = assets;
 
     this.highestScore = Number(localStorage.getItem("highestScore")) || 0;
+    this.textColor = this.assets.getBackgroundTextColor();
 
     this.hudContainer = new PIXI.Container();
     this.scoreText = new PIXI.Text("Score: 0", {
       fontFamily: "ubuntu-medium",
       fontSize: 24,
-      fill: 0xffffff,
+      fill: this.textColor,
       align: "left",
     });
     this.highestScoreText = new PIXI.Text(`Highest Score: ${this.highestScore}`, {
       fontFamily: "ubuntu-medium",
       fontSize: 24,
-      fill: 0xffffff,
+      fill: this.textColor,
       align: "right",
     });
 

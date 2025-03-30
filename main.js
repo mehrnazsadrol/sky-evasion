@@ -5,6 +5,9 @@ import { CityBackgroundManager } from './cityBackgroundManager.js';
 import { GameOver } from './gameOver.js';
 import { Hud } from './hud.js';
 import { Assets } from './assets.js';
+import { SettingButtonManager } from './settingButtonManager.js';
+import { AvatarOptions } from './avatarOptions.js';
+import { BackgroundOptions } from './backgroundOptions.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -40,28 +43,30 @@ import { Assets } from './assets.js';
   app.canvas.style.left = "50%";
   app.canvas.style.transform = "translate(-50%, -50%)";
 
-  const firstPageContainer = new PIXI.Container();
-  const buttonManager = new ButtonManager(
-    app,
-    firstPageContainer,
-    c_width,
-    c_height,
-    canvas_bg_color,
-    changeCanvasBackground,
-    changeAvatar,
-    startGame,
-    assets,
-  );
-
-  buttonManager.loadPage();
-  app.stage.addChild(firstPageContainer);
-
   let hud;
   let gameOverContainer;
   let gameContainer;
   let gameController;
   let backgroundManager;
   let avatar;
+
+  const firstPageContainer = new PIXI.Container();
+  let settingButtonManager = new SettingButtonManager(
+    c_width,
+    c_height,
+    canvas_bg_color,
+    loadBackgroundOptionsScreen,
+    loadAvatarOptionsScreen,
+    assets);
+
+  const buttonManager = new ButtonManager(
+    c_width,
+    c_height,
+    firstPageContainer,
+    settingButtonManager,
+    assets,
+    startGame
+  );
 
   async function startGame() {
     app.stage.removeChildren();
@@ -80,7 +85,7 @@ import { Assets } from './assets.js';
     gameContainer = new PIXI.Container();
     app.stage.addChild(gameContainer);
 
-    hud = new Hud(gameContainer, c_width, c_height);
+    hud = new Hud(gameContainer, c_width, c_height, assets);
 
     gameController = new GameController(
       gameContainer,
@@ -90,66 +95,47 @@ import { Assets } from './assets.js';
       c_height,
       (app.ticker.FPS || 60),
       gameOver,
-      assets);
+      assets,
+      hud);
 
     app.ticker.add(updateGameController);
   }
 
-
-  function changeCanvasBackground(cityIdx) {
-    game_theme = cityIdx;
-    localStorage.setItem('cityIndex', cityIdx);
-    if (buttonManager.OptionsContainer) {
-      app.stage.removeChild(buttonManager.OptionsContainer);
-      buttonManager.OptionsContainer = null;
-    }
-  }
-
-  function changeAvatar(avatarIdx) {
-    game_avatar = avatarIdx;
-    localStorage.setItem('avatarIndex', avatarIdx);
-    if (buttonManager.OptionsContainer) {
-      app.stage.removeChild(buttonManager.OptionsContainer);
-      buttonManager.OptionsContainer = null;
-    }
-  }
-
-  function gameOver() {
+  async function gameOver() {
     app.ticker.stop();
     app.ticker.remove(updateGameController);
     app.stage.removeChild(gameContainer);
     gameOverContainer = new PIXI.Container();
     const gameOverScreen = new GameOver(
       gameOverContainer,
+      settingButtonManager,
       c_width,
       c_height,
       restartGame,
       hud,
       assets
     );
-    gameOverScreen.init();
+    await gameOverScreen.init();
     app.stage.addChild(gameOverContainer);
+    app.renderer.render(app.stage);
   }
   let isRestarting = false;
 
 
   async function restartGame() {
-    console.log("Restarting game...", isRestarting);
     if (isRestarting) return;
     isRestarting = true;
     app.ticker.stop();
-
 
     if (gameOverContainer) {
       app.stage.removeChild(gameOverContainer);
       gameOverContainer = null;
     }
 
-    await resetGameController();
+    await setupGameController();
 
     app.ticker.start();
     isRestarting = false;
-
   }
 
   async function resetGameController() {
@@ -166,9 +152,60 @@ import { Assets } from './assets.js';
       c_height,
       (app.ticker.FPS || 60),
       gameOver,
-      assets);
+      assets,
+      hud);
 
     app.ticker.add(updateGameController);
   }
 
+  async function loadAvatarOptionsScreen() {
+    const optionsContainer = new PIXI.Container();
+    const avatarOptions = new AvatarOptions(
+      optionsContainer,
+      assets,
+      this.c_width,
+      this.c_height,
+      this.canvas_bg_color,
+      changeAvatar
+    );
+    await avatarOptions.init();
+    app.stage.addChild(optionsContainer);
+    app.renderer.render(app.stage);
+
+    function changeAvatar(avatarIdx) {
+      game_avatar = avatarIdx;
+      localStorage.setItem('avatarIndex', avatarIdx);
+      if (optionsContainer) {
+        app.stage.removeChild(optionsContainer);
+        app.renderer.render(app.stage);
+      }
+    }
+  }
+
+  async function loadBackgroundOptionsScreen() {
+    const optionsContainer = new PIXI.Container();
+    const backgroundOptions = new BackgroundOptions(
+      optionsContainer,
+      assets,
+      this.c_width,
+      this.c_height,
+      this.canvas_bg_color,
+      changeCanvasBackground
+    );
+    backgroundOptions.init();
+    app.stage.addChild(optionsContainer);
+    app.renderer.render(app.stage);
+
+    function changeCanvasBackground(cityIdx) {
+      game_theme = cityIdx;
+      localStorage.setItem('cityIndex', cityIdx);
+      if (optionsContainer) {
+        app.stage.removeChild(optionsContainer);
+        app.renderer.render(app.stage);
+      }
+    }
+  }
+
+  buttonManager.loadPage();
+  app.stage.addChild(firstPageContainer);
 })();

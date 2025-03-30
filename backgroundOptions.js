@@ -1,9 +1,10 @@
 export class BackgroundOptions {
-  constructor(c_width, c_height, canvas_bg_color, onCitySelected) {
+  constructor(container, assets, c_width, c_height, canvas_bg_color, onCitySelected) {
     this.c_width = c_width;
     this.c_height = c_height;
     this.canvas_bg_color = canvas_bg_color;
-    this.container = new PIXI.Container();
+    this.container = container;
+    this.assets = assets;
     this.citySprites = [];
     this.cityRects = [];
     this.onCitySelected = onCitySelected;
@@ -50,15 +51,14 @@ export class BackgroundOptions {
     const offset_x = this.c_width / 21;
     const offset_y = (this.c_height - this.startY) / 15;
 
-    const basePath = "res/city-backgrounds/city-";
-    const num_cities = 8;
+    const num_cities = this.assets.getCityOptionCount();
+    const cityTextures = this.assets.getCityOptionTextures();
     const num_rows = 2;
 
     for (let i = 0; i < num_rows; i++) {
       for (let j = 0; j < num_cities / num_rows; j++) {
-        const c = j + 1 + i * (num_cities / num_rows);
-        const imagePath = `${basePath}${c}.png`;
-        const texture = await PIXI.Assets.load(imagePath);
+        const c = j + i * (num_cities / num_rows);
+        const texture = cityTextures[c];
 
         const rect = new PIXI.Graphics();
         rect.beginFill(0x000000, 0);
@@ -86,8 +86,7 @@ export class BackgroundOptions {
         });
 
         rect.on("click", () => {
-          const cityIndex = i * (num_cities / num_rows) + j;
-          this._onCitySelected(cityIndex);
+          this._onCitySelected(c);
         });
 
         this.container.addChild(rect);
