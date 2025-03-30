@@ -34,9 +34,6 @@ export class GameOver {
   }
 
   async _loadSettingButtons() {
-    const wallpaperButton = await this.settingButtonManager.createWallpaperButton();
-    this.container.addChild(wallpaperButton);
-
     const characterButton = await this.settingButtonManager.createCharacterChangeButton();
     this.container.addChild(characterButton);
   }

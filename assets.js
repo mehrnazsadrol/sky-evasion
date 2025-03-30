@@ -4,13 +4,6 @@ export class Assets {
     this.textures = new Map();
     this.cityBackgrounds = {
       1: { count: 5, textures: [] },
-      2: { count: 6, textures: [] },
-      3: { count: 5, textures: [] },
-      4: { count: 6, textures: [] },
-      5: { count: 5, textures: [] },
-      6: { count: 6, textures: [] },
-      7: { count: 5, textures: [] },
-      8: { count: 5, textures: [] },
     };
     this.avatarConfig = {
       girl: {
@@ -49,17 +42,10 @@ export class Assets {
     };
     this.cityBackgroundOptions = {
       baseUrl: "res/city-backgrounds/city-",
-      count: 8,
-      textures: [],
+      count: 1,
+      texture: [],
       textColors: {
         0: 0xFFFFFF,
-        1: 0xfff4f3,
-        2: 0x8e4862,
-        3: 0x000000,
-        4: 0xA5158C,
-        5: 0x211C84,
-        6: 0x261FB3,
-        7: 0xFFFFFF
       },
     };
     this.avatarOptions = {
@@ -70,7 +56,6 @@ export class Assets {
 
   async loadAssets() {
     const assets = [
-      { name: 'wallpaper_icon', url: 'res/icons/wallpaper_icon2.png' },
       { name: 'avatar_icon', url: 'res/icons/avatar_icon2.png' },
       { name: 'start_icon', url: 'res/icons/start_icon.png' },
       { name: 'first_page_background', url: 'res/start_page_bg.png' },
@@ -160,8 +145,8 @@ export class Assets {
     return this.textures.get(name);
   }
 
-  getCityBackgrounds(idx) {
-    return this.cityBackgrounds[idx];
+  getCityBackgrounds() {
+    return this.cityBackgrounds[1];
   }
 
   getAvatarTextures(avatarType) {
@@ -193,15 +178,7 @@ export class Assets {
   getSlimeTextureWidth() {
     return this.slimeConfig.blue.textures[0].width;
   }
-
-  getCityOptionTextures() {
-    return this.cityBackgroundOptions.textures;
-  };
-
-  getCityOptionCount() {
-    return this.cityBackgroundOptions.count;
-  }
-
+  
   getAvatarOptionTextures() {
     return this.avatarOptions.textures;
   }

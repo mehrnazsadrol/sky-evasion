@@ -21,14 +21,8 @@ export class ButtonManager {
   }
 
   async loadPage() {
-    await this._createWallpaperButton();
     await this._createStartButton();
     await this._createCharacterChangeButton();
-  }
-
-  async _createWallpaperButton() {
-    const button = await this.settingButtonManager.createWallpaperButton();
-    this.firstPageContainer.addChild(button);
   }
 
   async _createCharacterChangeButton() {

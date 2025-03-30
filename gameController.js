@@ -176,10 +176,8 @@ export class GameController {
 
     tile.x = x;
     tile.y = this.c_height - this.roadTileHeight;
-    console.log('slimeSpawnChance', this.slimeSpawnChance);
     if (!isFirstTile && Math.random() < this.slimeSpawnChance) {
       const slimeCount = 1 + Math.floor(Math.random() * (1 + Math.floor(this.baseDifficulty / 2)));
-      console.log(slimeCount);
       for (let i = 0; i < slimeCount; i++) {
         const slimeX = tile.x + Math.random() * (tile.width - this.assets.getSlimeTextureWidth());
         const slimeY = tile.y;

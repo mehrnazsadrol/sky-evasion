@@ -7,7 +7,6 @@ import { Hud } from './hud.js';
 import { Assets } from './assets.js';
 import { SettingButtonManager } from './settingButtonManager.js';
 import { AvatarOptions } from './avatarOptions.js';
-import { BackgroundOptions } from './backgroundOptions.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -55,7 +54,6 @@ import { BackgroundOptions } from './backgroundOptions.js';
     c_width,
     c_height,
     canvas_bg_color,
-    loadBackgroundOptionsScreen,
     loadAvatarOptionsScreen,
     assets);
 
@@ -175,30 +173,6 @@ import { BackgroundOptions } from './backgroundOptions.js';
     function changeAvatar(avatarIdx) {
       game_avatar = avatarIdx;
       localStorage.setItem('avatarIndex', avatarIdx);
-      if (optionsContainer) {
-        app.stage.removeChild(optionsContainer);
-        app.renderer.render(app.stage);
-      }
-    }
-  }
-
-  async function loadBackgroundOptionsScreen() {
-    const optionsContainer = new PIXI.Container();
-    const backgroundOptions = new BackgroundOptions(
-      optionsContainer,
-      assets,
-      this.c_width,
-      this.c_height,
-      this.canvas_bg_color,
-      changeCanvasBackground
-    );
-    backgroundOptions.init();
-    app.stage.addChild(optionsContainer);
-    app.renderer.render(app.stage);
-
-    function changeCanvasBackground(cityIdx) {
-      game_theme = cityIdx;
-      localStorage.setItem('cityIndex', cityIdx);
       if (optionsContainer) {
         app.stage.removeChild(optionsContainer);
         app.renderer.render(app.stage);
