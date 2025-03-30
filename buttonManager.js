@@ -21,8 +21,24 @@ export class ButtonManager {
   }
 
   async loadPage() {
+    this._createText();
     await this._createStartButton();
     await this._createCharacterChangeButton();
+  }
+
+  _createText() {
+    const textColor = this.assets.getCanvasBackgroundColor();
+    const style = new PIXI.TextStyle({
+      fontFamily: 'ubuntu-medium',
+      fontSize: 55,
+      fontWeight: 'bold',
+      fill: textColor,
+    });
+    const message = new PIXI.Text('SKY EVASION', style);
+    message.anchor.set(0.5);
+    message.x = this.c_width / 2;
+    message.y = this.c_height / 5;
+    this.firstPageContainer.addChild(message);
   }
 
   async _createCharacterChangeButton() {
@@ -61,7 +77,7 @@ export class ButtonManager {
     rect.addChild(text);
 
     rect.x = (this.c_width - iconW)/2;
-    rect.y = (this.c_height - iconH)/2;
+    rect.y = (this.c_height - iconH) * 2/3;
 
     rect.on("pointerover", () => {
       rect.filters = [this.dropShadowFilter];

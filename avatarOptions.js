@@ -1,10 +1,10 @@
 export class AvatarOptions {
-  constructor(container, assets, c_width, c_height, canvas_bg_color, onAvatarSelected) {
+  constructor(container, assets, c_width, c_height, onAvatarSelected) {
     this.container = container;
     this.assets = assets;
     this.c_width = c_width;
     this.c_height = c_height;
-    this.canvas_bg_color = canvas_bg_color;
+    this.canvas_bg_color = this.assets.getCanvasBackgroundColor();
     this.avatarSprites = [];
     this.avatarRects = [];
     this.onAvatarSelected = onAvatarSelected;
@@ -18,7 +18,7 @@ export class AvatarOptions {
 
   _setupBackground() {
     const bgRect = new PIXI.Graphics();
-    bgRect.beginFill(parseInt(this.canvas_bg_color));
+    bgRect.beginFill(this.canvas_bg_color);
     bgRect.drawRect(0, 0, this.c_width, this.c_height);
     bgRect.endFill();
     this.container.addChild(bgRect);

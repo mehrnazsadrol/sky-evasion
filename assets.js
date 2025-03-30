@@ -52,6 +52,7 @@ export class Assets {
       baseUrl: "res/avatar-options/",
       textures: [],
     }
+    this.canvas_bg_color = "#2D336B";
   }
 
   async loadAssets() {
@@ -178,7 +179,7 @@ export class Assets {
   getSlimeTextureWidth() {
     return this.slimeConfig.blue.textures[0].width;
   }
-  
+
   getAvatarOptionTextures() {
     return this.avatarOptions.textures;
   }
@@ -186,5 +187,9 @@ export class Assets {
   getBackgroundTextColor() {
     const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
     return this.cityBackgroundOptions.textColors[currentBackgroundIndex];
+  }
+
+  getCanvasBackgroundColor() {
+    return this.canvas_bg_color;
   }
 }

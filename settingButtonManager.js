@@ -2,15 +2,14 @@ export class SettingButtonManager {
   constructor(
     c_width,
     c_height,
-    canvas_bg_color,
     loadAvatarOptionsScreen,
     assets) {
 
     this.c_width = c_width;
     this.c_height = c_height;
-    this.canvas_bg_color = canvas_bg_color;
-    this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
     this.assets = assets;
+    this.canvas_bg_color = this.assets.getCanvasBackgroundColor();
+    this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
 
     this.OptionsContainer = null;
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({

@@ -13,15 +13,13 @@ import { AvatarOptions } from './avatarOptions.js';
   const canvas_wrapper = document.getElementById('canvas-wrapper');
   const c_width = canvas_wrapper ? canvas_wrapper.clientWidth : window.innerWidth;
   const c_height = canvas_wrapper ? canvas_wrapper.clientHeight : window.innerHeight;
-  const canvas_bg_color = "0x2D336B";
-  let game_theme = localStorage.getItem('cityIndex') ?? 0;
-  let game_avatar = localStorage.getItem('avatarIndex') ?? 0;
+
 
   const app = new PIXI.Application();
   await app.init({
     width: c_width,
     height: c_height,
-    backgroundColor: canvas_bg_color,
+    backgroundColor: 0xFFFFFF,
   });
   const assets = new Assets();
   await assets.loadAssets();
@@ -53,7 +51,6 @@ import { AvatarOptions } from './avatarOptions.js';
   let settingButtonManager = new SettingButtonManager(
     c_width,
     c_height,
-    canvas_bg_color,
     loadAvatarOptionsScreen,
     assets);
 
@@ -163,7 +160,6 @@ import { AvatarOptions } from './avatarOptions.js';
       assets,
       this.c_width,
       this.c_height,
-      this.canvas_bg_color,
       changeAvatar
     );
     await avatarOptions.init();
@@ -171,7 +167,6 @@ import { AvatarOptions } from './avatarOptions.js';
     app.renderer.render(app.stage);
 
     function changeAvatar(avatarIdx) {
-      game_avatar = avatarIdx;
       localStorage.setItem('avatarIndex', avatarIdx);
       if (optionsContainer) {
         app.stage.removeChild(optionsContainer);
