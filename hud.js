@@ -4,23 +4,25 @@ export class Hud {
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
+    this.currentLevel = 1;
+    this.lives = 2;
     this.assets = assets;
+    this.bannerHeight = 60;
+    this.maxLevel = 12;
 
     this.highestScore = Number(localStorage.getItem("highestScore")) || 0;
-    this.textColor = this.assets.getBackgroundTextColor();
+    this.textColor = this.assets.getScoreTextColor();
 
     this.hudContainer = new PIXI.Container();
-    this.scoreText = new PIXI.Text("Score: 0", {
-      fontFamily: "ubuntu-medium",
-      fontSize: 24,
+    this.animationContainer = new PIXI.Container();
+
+    this.scoreText = new PIXI.Text("SCORE: 0", {
+      fontFamily: "RoadRage", 
+      fontSize: 30,
       fill: this.textColor,
       align: "left",
-    });
-    this.highestScoreText = new PIXI.Text(`Highest Score: ${this.highestScore}`, {
-      fontFamily: "ubuntu-medium",
-      fontSize: 24,
-      fill: this.textColor,
-      align: "right",
+      stroke: 0x000000,
+      strokeThickness: 1
     });
 
     this._setupHud();
@@ -28,30 +30,186 @@ export class Hud {
 
   _setupHud() {
     const hudBar = new PIXI.Graphics();
-    hudBar.beginFill(0x000000, 0);
-    hudBar.drawRect(0, 0, this.c_width, 50);
+    hudBar.beginFill(0xFAF1E6, 0.6);
+    hudBar.drawRect(0, 0, this.c_width, this.bannerHeight);
     hudBar.endFill();
 
     this.scoreText.x = 20;
-    this.scoreText.y = 10;
+    this.scoreText.y = 15;
 
     this.hudContainer.addChild(hudBar);
     this.hudContainer.addChild(this.scoreText);
+    this._setupLivesText();
+
 
     this.container.addChild(this.hudContainer);
+    this.container.addChild(this.animationContainer);
+    this.setLevel(1);
   }
 
-  drawScore() {
-    this.scoreText.text = `Score: ${this.score}`;
+  loseLife() {
+    if (this.lives > 0) {
+      this.lives--;
+      this.updateLives();
+      this._showFloatingText("LIFE LOST!", 0xFF0000, this.c_width / 2, this.c_height / 2, 42);
+    }
+  }
+
+  _setupLivesText() {
+    // Create a container for the lives elements
+    this.livesContainer = new PIXI.Container();
+    const fillColor = 0xF30067;
+    const strokeColor = 0x7C203A;
+
+    this.livesNumber = new PIXI.Text(this.lives.toString(), {
+      fontFamily: "Chewy",
+      fontSize: 28,
+      fill: fillColor,
+      stroke: strokeColor,
+      strokeThickness: 2
+    });
+
+    // × symbol (5px smaller)
+    this.livesMultiplier = new PIXI.Text("×", {
+      fontFamily: "Chewy",
+      fontSize: 23,
+      fill: fillColor,
+      stroke: strokeColor,
+      strokeThickness: 2
+    });
+
+    this.livesHeart = new PIXI.Text("♥", {
+      fontFamily: "Chewy",
+      fontSize: 28,
+      fill: fillColor,
+      stroke: strokeColor,
+      strokeThickness: 2
+    });
+
+    this.livesMultiplier.x = this.livesNumber.width + 5;
+    this.livesHeart.x = this.livesMultiplier.x + this.livesMultiplier.width + 3;
+
+    this.livesContainer.addChild(this.livesNumber);
+    this.livesContainer.addChild(this.livesMultiplier);
+    this.livesContainer.addChild(this.livesHeart);
+
+    this.livesContainer.x = this.c_width - 20 - this.livesContainer.width ;
+    this.livesContainer.y = 15;
+
+    this.hudContainer.addChild(this.livesContainer);
+  }
+
+
+  updateLives() {
+    this.livesNumber.text = this.lives.toString();
+    this.livesMultiplier.x = this.livesNumber.width + 5;
+    this.livesHeart.x = this.livesMultiplier.x + this.livesMultiplier.width + 5;
   }
 
   addScore(score) {
     this.score += score;
-    this.drawScore();
+    this.scoreText.text = `SCORE: ${this.score}`;
+    this._showFloatingText(`+${score}`, 0x00FF00, this.c_width / 2, this.c_height / 2, 36);
 
     if (this.score > this.highestScore) {
       this.updateHighestScore(this.score);
     }
+  }
+
+  showLevelText(level) {
+    if (this.currentLevelAnimation) {
+      this.animationContainer.removeChild(this.currentLevelAnimation);
+    }
+
+    const levelText = new PIXI.Text(`LEVEL ${level}`, {
+      fontFamily: "BungeeSpice",
+      fontSize: 30, 
+      align: "center",
+      stroke: 0x000000,
+      strokeThickness: 5,
+    });
+
+    levelText.anchor.set(0.5);
+    levelText.x = this.c_width / 2;
+    levelText.y = this.bannerHeight / 2 ;
+    levelText.alpha = 0;
+    levelText.scale.set(0.1);
+
+    this.animationContainer.addChild(levelText);
+    this.currentLevelAnimation = levelText;
+
+    const animationDuration = 2000;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+
+      if (progress < 0.3) {
+        const growProgress = progress / 0.3;
+        levelText.alpha = growProgress;
+        levelText.scale.set(0.1 + (growProgress * 0.9));
+      } else if (progress < 0.7) {
+        levelText.scale.set(1);
+        levelText.alpha = 1;
+      } else {
+        const moveProgress = (progress - 0.7) / 0.3;
+        levelText.y = this.bannerHeight / 2 - (moveProgress * 200);
+        levelText.alpha = 1 - moveProgress;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        this.animationContainer.removeChild(levelText);
+        this.currentLevelAnimation = null;
+      }
+    };
+
+    animate();
+  }
+
+  setLevel(level) {
+    this.currentLevel = level;
+    this.showLevelText(level);
+  }
+
+  _showFloatingText(text, color, x, y, fontSize = 36) {
+    let fontFamily = "RoadRage"; 
+    if (text.startsWith("+")) fontFamily = "Chewy";
+    if (text.startsWith("LEVEL")) fontFamily = "Nabla";
+
+    const floatingText = new PIXI.Text(text, {
+      fontFamily: fontFamily,
+      fontSize: fontSize,
+      fill: color,
+      align: "center",
+      stroke: 0x000000,
+      strokeThickness: 3
+    });
+
+    floatingText.anchor.set(0.5);
+    floatingText.x = x;
+    floatingText.y = y;
+    floatingText.alpha = 1;
+    
+    this.animationContainer.addChild(floatingText);
+
+    const animate = () => {
+      floatingText.y -= 1.5;
+      floatingText.alpha -= 0.015;
+      
+      if (floatingText.alpha <= 0) {
+        this.animationContainer.removeChild(floatingText);
+      } else {
+        requestAnimationFrame(animate);
+      }
+    };
+    requestAnimationFrame(animate);
+  }
+
+  drawScore() {
+    this.scoreText.text = `Score: ${this.score}`;
   }
 
   getScore() {
@@ -60,13 +218,14 @@ export class Hud {
 
   updateHighestScore(score) {
     this.highestScore = score;
-    this.highestScoreText.text = `Highest Score: ${this.highestScore}`;
-    this.highestScoreText.x = this.c_width - this.highestScoreText.width - 20;
-
     localStorage.setItem("highestScore", this.highestScore.toString());
   }
 
   getHighestScore() {
     return this.highestScore;
+  }
+
+  getLvlDifficulty() {
+    return Math.floor(this.currentLevel / this.maxLevel);
   }
 }

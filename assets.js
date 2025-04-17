@@ -38,29 +38,45 @@ export class Assets {
     };
     this.slimeConfig = {
       blue: {
-        url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [],
+        url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [], mirrored: false,
       },
-      green: {
-        url: "res/slime-sprite/Green_Slime/Walk(", count: 8, textures: [],
+      greenLeft: {
+        url: "res/slime-sprite/Green_Slime/Walk(", count: 8, textures: [], mirrored: true,
       },
-      red: {
-        url: "res/slime-sprite/Red_Slime/Walk(", count: 8, textures: [],
+      greenRight: {
+        url: "res/slime-sprite/Green_Slime/Walk(", count: 8, textures: [], mirrored: false,
+      },
+      redIdle: {
+        url: "res/slime-sprite/Red_Slime/Walk(", count: 8, textures: [], mirrored: false,
+      },
+      redJump: {
+        url: "res/slime-sprite/Red_Slime/Jump(", count: 13, textures: [], mirrored: true,
       },
     };
     this.cityBackgroundOptions = {
       baseUrl: "res/city-backgrounds/city-",
       count: 8,
       textures: [],
-      textColors: {
-        0: 0xFFFFFF,
-        1: 0xfff4f3,
-        2: 0x8e4862,
-        3: 0x000000,
-        4: 0xA5158C,
-        5: 0x211C84,
-        6: 0x261FB3,
-        7: 0xFFFFFF
+      gameOverText: {
+        0: 0xFDF1DB,
+        1: 0xFDF1DB,
+        2: 0xFDF1DB,
+        3: 0xFDF1DB,
+        4: 0xE8C999,
+        5: 0xE8C999,
+        6: 0xFDF1DB,
+        7: 0xFDF1DB
       },
+      scoreColor: {
+        0: 0x261FB3,
+        1: 0x31363F,
+        2: 0x474E68,
+        3: 0x461111,
+        4: 0x04009A,
+        5: 0x7C00FE,
+        6: 0x610C63,
+        7: 0x481E14
+      }
     };
     this.avatarOptions = {
       baseUrl: "res/avatar-options/",
@@ -86,6 +102,34 @@ export class Assets {
     await this.loadSlimeAssets();
     await this.loadCityOptions();
     await this.loadAvatarOptions();
+    await this.loadFonts();
+  }
+
+
+  async loadFonts() {
+    const fontDefinitions = [
+      { file: 'BungeeSpice-Regular.ttf', family: 'BungeeSpice' },
+      { file: 'Chewy-Regular.ttf', family: 'Chewy' },
+      { file: 'Monofett-Regular.ttf', family: 'Monofett' },
+      { file: 'Nabla-Regular-VariableFont_EDPT.ttf', family: 'Nabla' },
+      { file: 'RoadRage-Regular.ttf', family: 'RoadRage' },
+      { file: 'TitanOne-Regular.ttf', family: 'TitanOne' },
+      { file: 'ubuntu-medium.ttf', family: 'ubuntu-medium' },
+      { file: 'Wallpoet-Regular.ttf', family: 'Wallpoet' }
+    ];
+
+    await Promise.all(fontDefinitions.map(async (font) => {
+      const fontPath = `res/fonts/${font.file}`;
+      const fontFace = new FontFace(font.family, `url(${fontPath})`);
+      
+      try {
+        const loadedFont = await fontFace.load();
+        document.fonts.add(loadedFont);
+        console.log(`Font loaded: ${font.family}`);
+      } catch (error) {
+        console.error(`Failed to load font ${font.family}:`, error);
+      }
+    }));
   }
 
   async loadCityOptions() {
@@ -105,17 +149,21 @@ export class Assets {
 
   async loadSlimeAssets() {
     for (const [key, item] of Object.entries(this.slimeConfig)) {
-      const textures = await this._loadSlimeTextures(item.url, item.count);
+      const textures = await this._loadSlimeTextures(item.url, item.count, item.mirrored);
       this.slimeConfig[key].textures = textures
     }
   }
 
-  async _loadSlimeTextures(baseUrl, count) {
+  async _loadSlimeTextures(baseUrl, count, mirrored) {
     const texturePromises = [];
     for (let i = 1; i <= count; i++) {
       const originalTexture = await PIXI.Assets.load(`${baseUrl}${i}).png`);
-      const mirroredTexture = this._createMirroredTexture(originalTexture);
-      texturePromises.push(mirroredTexture);
+      if (mirrored) {
+        const mirroredTexture = this._createMirroredTexture(originalTexture);
+        texturePromises.push(mirroredTexture);
+      } else {
+        texturePromises.push(originalTexture);
+      }
     }
     return await Promise.all(texturePromises);
   }
@@ -183,11 +231,17 @@ export class Assets {
   getBlueSlimeTextures() {
     return this.slimeConfig.blue.textures;
   }
-  getGreenSlimeTextures() {
-    return this.slimeConfig.green.textures;
+  getGreenSlimeLeftTextures() {
+    return this.slimeConfig.greenLeft.textures;
   }
-  getRedSlimeTextures() {
-    return this.slimeConfig.red.textures;
+  getGreenSlimeRightTextures() {
+    return this.slimeConfig.greenRight.textures;
+  }
+  getRedSlimeIdleTextures() {
+    return this.slimeConfig.redIdle.textures;
+  }
+  getRedSlimeJumpTextures() {
+    return this.slimeConfig.redJump.textures;
   }
 
   getSlimeTextureWidth() {
@@ -208,6 +262,11 @@ export class Assets {
 
   getBackgroundTextColor() {
     const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
-    return this.cityBackgroundOptions.textColors[currentBackgroundIndex];
+    return this.cityBackgroundOptions.gameOverText[currentBackgroundIndex];
+  }
+
+  getScoreTextColor() {
+    const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
+    return this.cityBackgroundOptions.scoreColor[currentBackgroundIndex];
   }
 }

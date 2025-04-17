@@ -29,3 +29,38 @@ body {
     font-family: 'ubuntu-medium';
     src: url('res/fonts/ubuntu-medium.ttf') format('truetype');
 }
+
+@font-face {
+    font-family: 'bungeeSpice';
+    src: url('res/fonts/BungeeSpice-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'chewy';
+    src: url('res/fonts/Chewy-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'monofett';
+    src: url('res/fonts/Monofett-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'nabla';
+    src: url('res/fonts/Nabla-Regular-VariableFont_EDPT.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'roadRage';
+    src: url('res/fonts/RoadRage-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'titanOne';
+    src: url('res/fonts/TitanOne-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'wallpoet';
+    src: url('res/fonts/Wallpoet-Regular.ttf') format('truetype');
+}

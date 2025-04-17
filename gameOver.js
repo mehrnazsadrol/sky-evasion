@@ -21,7 +21,7 @@ export class GameOver {
       distance: 5,
       blur: 4,
       alpha: 0.6,
-      color: textColor,
+      color: textColor, 
     });
 
   }
@@ -44,15 +44,18 @@ export class GameOver {
   _loadText() {
     const textColor = this.assets.getBackgroundTextColor();
     const style = new PIXI.TextStyle({
-      fontFamily: 'ubuntu-medium',
-      fontSize: 55,
+      fontFamily: 'BungeeSpice',
+      fontSize: 60,
       fontWeight: 'bold',
       fill: textColor,
+      dropShadow: true,
+      dropShadowColor: this.assets.getScoreTextColor(),
+      dropShadowDistance: 4
     });
     const message = new PIXI.Text('Game Over!', style);
-    message.anchor.set(0.5);
+    message.anchor.set(0.5, 1);
     message.x = this.c_width / 2;
-    message.y = this.c_height / 5;
+    message.y = this.c_height / 3;
     this.container.addChild(message);
   }
 
@@ -87,7 +90,7 @@ export class GameOver {
     rect.addChild(text);
 
     rect.x = (this.c_width - iconW) / 2;
-    rect.y = (this.c_height - iconH) * 4 / 5;
+    rect.y = (this.c_height - iconH) * 5 / 6;
 
     rect.on("pointerover", () => {
       rect.filters = [this.dropShadowFilter];
@@ -105,38 +108,40 @@ export class GameOver {
   };
 
   _loadScore() {
-    const textColor = this.assets.getBackgroundTextColor();
     const scoreStyle = {
-      fontFamily: 'ubuntu-medium',
-      fontWeight: 'bold',
-      fill: textColor,
+      fontFamily: 'RoadRage',
+      fill: this.assets.getBackgroundTextColor(),
+      dropShadow: true,
+      dropShadowColor: this.assets.getScoreTextColor(),
+      dropShadowDistance: 4
     };
 
     const currentScore = this.hud.getScore();
     const highestScore = this.hud.getHighestScore();
 
-    const highestScoreText = new PIXI.Text(
-      `Your Highest Score: ${highestScore}`,
+    const currentScoreText = new PIXI.Text(`YOUR SCORE: ${currentScore}`,
       new PIXI.TextStyle({
         ...scoreStyle,
-        fontSize: 25
+        fontSize: 50
       })
     );
-    highestScoreText.anchor.set(0.5);
-    highestScoreText.x = this.c_width / 2;
-    highestScoreText.y = this.c_height / 3;
-    this.container.addChild(highestScoreText);
-
-    scoreStyle.fontSize = 35;
-    const currentScoreText = new PIXI.Text(`Your Score: ${currentScore}`,
-      new PIXI.TextStyle({
-      ...scoreStyle,
-      fontSize: 35
-    })
-  );
     currentScoreText.anchor.set(0.5);
     currentScoreText.x = this.c_width / 2;
-    currentScoreText.y = this.c_height / 3 + 60;
+    currentScoreText.y = this.c_height / 2;
     this.container.addChild(currentScoreText);
+
+    const highestScoreText = new PIXI.Text(
+      `YOUR HIGHEST SCORE: ${highestScore}`,
+      new PIXI.TextStyle({
+        ...scoreStyle,
+        fontSize: 30
+      })
+    );
+    highestScoreText.anchor.set(0.5, 0);
+    highestScoreText.x = this.c_width / 2;
+    highestScoreText.y = this.c_height/ 3 + currentScoreText.height + 1.5 *highestScoreText.height;
+    this.container.addChild(highestScoreText);
+
+    
   }
 }
