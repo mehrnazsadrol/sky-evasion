@@ -1,4 +1,6 @@
 import { Slime } from './slime.js';
+import {Gem} from './gem.js';
+
 export class GameController {
 
   constructor(container, backgroundManager, avatar, c_width, c_height, totalFramesInOneSecond, gameOver, assets, hud) {
@@ -11,6 +13,8 @@ export class GameController {
     this.totalFramesInOneSecond = totalFramesInOneSecond;
     this.gameOver = gameOver;
     this.hud = hud;
+
+    this.distanceToLevelUp = this.c_width *3;
 
     this.maxWalkSpeed = 5;
     this.maxRunSpeed = 15;
@@ -181,13 +185,11 @@ export class GameController {
       const slimeWidth = this.assets.getSlimeTextureWidth();
       console.log(slimeCount);
       for (let i = 0; i < slimeCount; i++) {
-        // const slimeX = tile.x + Math.random() * (tile.width - slimeWidth);
-        const slimeX = tile.x;
+        const slimeX = tile.x + Math.random() * (tile.width - slimeWidth);
         const slimeY = tile.y;
         if (!tile.slimes) tile.slimes = [];
+        if (!tile.gems) tile.gems = [];
         tile.slimes.push(new Slime(this.container, slimeX, slimeY, this.assets, 5, this.c_height, 'blue'));
-        tile.slimes.push(new Slime(this.container, slimeX + (slimeWidth+ 10), slimeY, this.assets, 5, this.c_height, 'green'));
-        tile.slimes.push(new Slime(this.container, slimeX + (2*slimeWidth+20), slimeY, this.assets,5, this.c_height, 'red'));
       }
     }
 
@@ -224,7 +226,7 @@ export class GameController {
 
   update() {
     this.distanceTraveled += this.speed;
-    this.baseDifficulty = Math.min(Math.floor(this.distanceTraveled / (2*this.c_width)), this.maxDifficulty);
+    this.baseDifficulty = Math.min(Math.floor(this.distanceTraveled / this.distanceToLevelUp), this.maxDifficulty);
 
     this.slimeSpawnChance = Math.min(0.3 + (this.baseDifficulty * 0.05), this.maxSlimeSpawnChance);
     if (this.isFalling) {
@@ -243,6 +245,9 @@ export class GameController {
       if (tile.slimes)
         for (const slime of tile.slimes)
           slime.updateSlime(-this.speed, tile.x, tile.x + tile.width);
+      if (tile.gems)
+        for (const gem of tile.gems)
+          gem.updateGem(-this.speed);
     }
 
     if (!this.isJumping) {

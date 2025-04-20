@@ -3,14 +3,19 @@ export class Assets {
   constructor() {
     this.textures = new Map();
     this.cityBackgrounds = {
-      1: { count: 5, textures: [] },
-      2: { count: 6, textures: [] },
-      3: { count: 5, textures: [] },
-      4: { count: 6, textures: [] },
-      5: { count: 5, textures: [] },
-      6: { count: 6, textures: [] },
-      7: { count: 5, textures: [] },
-      8: { count: 5, textures: [] },
+      1: { count: 5, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x261FB3 },
+      2: { count: 6, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x31363F },
+      3: { count: 5, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x474E68 },
+      4: { count: 6, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x461111 },
+      5: { count: 5, textures: [], gameOverText: 0xE8C999, scoreColor: 0x04009A },
+      6: { count: 6, textures: [], gameOverText: 0xE8C999, scoreColor: 0x7C00FE },
+      7: { count: 5, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x610C63 },
+      8: { count: 5, textures: [], gameOverText: 0xFDF1DB, scoreColor: 0x481E14 }
+    };
+    this.cityBackgroundOptions = {
+      baseUrl: "res/city-backgrounds/city-",
+      count: 8,
+      textures: [],
     };
     this.avatarConfig = {
       girl: {
@@ -36,6 +41,10 @@ export class Assets {
         collisionThreshold: 80 / 100,
       },
     };
+    this.avatarOptions = {
+      baseUrl: "res/avatar-options/",
+      textures: [],
+    };
     this.slimeConfig = {
       blue: {
         url: "res/slime-sprite/Blue_Slime/Walk(", count: 8, textures: [], mirrored: false,
@@ -53,34 +62,21 @@ export class Assets {
         url: "res/slime-sprite/Red_Slime/Jump(", count: 13, textures: [], mirrored: true,
       },
     };
-    this.cityBackgroundOptions = {
-      baseUrl: "res/city-backgrounds/city-",
-      count: 8,
-      textures: [],
-      gameOverText: {
-        0: 0xFDF1DB,
-        1: 0xFDF1DB,
-        2: 0xFDF1DB,
-        3: 0xFDF1DB,
-        4: 0xE8C999,
-        5: 0xE8C999,
-        6: 0xFDF1DB,
-        7: 0xFDF1DB
+    this.gems = {
+      diamond: {
+        baseUrl: "res/gems/diamond/Diamond(",
+        count: 48,
+        textures: [],
+        scale: 0.05,
+        animationSpeed: 0.1,
       },
-      scoreColor: {
-        0: 0x261FB3,
-        1: 0x31363F,
-        2: 0x474E68,
-        3: 0x461111,
-        4: 0x04009A,
-        5: 0x7C00FE,
-        6: 0x610C63,
-        7: 0x481E14
+      heart: {
+        baseUrl: "res/gems/heart/Heart(",
+        count: 58,
+        textures: [],
+        scale: 0.05,
+        animationSpeed: 0.3,
       }
-    };
-    this.avatarOptions = {
-      baseUrl: "res/avatar-options/",
-      textures: [],
     }
   }
 
@@ -103,6 +99,7 @@ export class Assets {
     await this.loadCityOptions();
     await this.loadAvatarOptions();
     await this.loadFonts();
+    await this.loadGems();
   }
 
 
@@ -121,7 +118,7 @@ export class Assets {
     await Promise.all(fontDefinitions.map(async (font) => {
       const fontPath = `res/fonts/${font.file}`;
       const fontFace = new FontFace(font.family, `url(${fontPath})`);
-      
+
       try {
         const loadedFont = await fontFace.load();
         document.fonts.add(loadedFont);
@@ -139,6 +136,16 @@ export class Assets {
     }
     this.cityBackgroundOptions.textures = await Promise.all(texturePromises);
   }
+
+  async loadGems() {
+    for (const [key, item] of Object.entries(this.gems)) {
+      const texturePromises = [];
+      for (let i = 1; i <= item.count; i++) {
+        texturePromises.push(PIXI.Assets.load(`${item.baseUrl}${i}).png`));
+      }
+      item.textures = await Promise.all(texturePromises);
+    }
+}
 
   async loadAvatarOptions() {
     const texturePromises = [];
@@ -262,11 +269,31 @@ export class Assets {
 
   getBackgroundTextColor() {
     const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
-    return this.cityBackgroundOptions.gameOverText[currentBackgroundIndex];
+    return this.cityBackgrounds[currentBackgroundIndex + 1].gameOverText;
   }
 
   getScoreTextColor() {
     const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
-    return this.cityBackgroundOptions.scoreColor[currentBackgroundIndex];
+    return this.cityBackgrounds[currentBackgroundIndex + 1].scoreColor;
+  }
+
+  getGemTextures(type) {
+    return this.gems[type].textures;
+  }
+
+  getGemScale(type) {
+    return this.gems[type].scale;
+  }
+
+  getGemAnimationSpeed(type) {
+    return this.gems[type].animationSpeed;
+  }
+
+  getAdjustedGemWidth(type) {
+    return this.gems[type].textures[0].width * this.gems[type].scale;
+  }
+
+  getAdjustedGemHeight(type) {
+    return this.gems[type].textures[0].height * this.gems[type].scale;
   }
 }
