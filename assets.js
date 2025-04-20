@@ -55,7 +55,7 @@ export class Assets {
       count: 1,
       texture: [],
       textColors: {
-        0: 0xFFFFFF,
+        1: 0xFFFFFF,
       },
     };
     

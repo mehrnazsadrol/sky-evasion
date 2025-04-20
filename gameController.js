@@ -50,11 +50,14 @@ export class GameController {
     this.isDoubleJumping = false;
     this.jumpStartTime = 0;
     this.jumpDuration = 500; // ms
-    this.jumpHorizontalDistance = this.minTileSpace * 2;
-    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
-    this.horizontalMovementPerFrame = null;
 
-    this.maxTileSpace = this.jumpHorizontalDistance * 0.9;
+    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
+
+
+    this.xJumpDistanceW = this.jumpDuration / 1000 * this.totalFramesInOneSecond * this.maxWalkSpeed;
+    this.xJumpDistanceR = this.jumpDuration / 1000 * this.totalFramesInOneSecond * this.maxRunSpeed;
+
+    this.maxTileSpace = this.xJumpDistanceR * 0.9;
     this.maxDifficulty = this.maxTileSpace - this.minTileSpace;
     this.distanceTraveled = 0;
     this.baseDifficulty = 0;
@@ -66,6 +69,8 @@ export class GameController {
     this.totalTilesGenerated = 0;
     this.lastTilePassed = 0;
     this.lastSlimeJumped = null;
+
+
 
     const avatarHeight = this.avatar.getAvatarHeight();
     this.avatar.addToStage(
@@ -147,15 +152,11 @@ export class GameController {
         // Initial jump
         this.isJumping = true;
         this.jumpStartTime = Date.now();
-        this.horizontalMovementPerFrame = this.jumpHorizontalDistance /
-          (this.totalFramesInOneSecond * this.jumpDuration / 1000);
         this.avatar.setAvatarState('jump');
       } else if (!this.isDoubleJumping) {
         // Double jump
         this.isDoubleJumping = true;
         this.jumpStartTime = Date.now();
-        this.horizontalMovementPerFrame = 2 * this.jumpHorizontalDistance /
-          (this.totalFramesInOneSecond * this.jumpDuration / 1000);
         this.avatar.setAvatarState('jump');
       }
     }
@@ -256,6 +257,7 @@ export class GameController {
       } else {
         this.isJumping = false;
       }
+      this.avatar.activeAnimation.y = avatarBaseY;
       if (this.isRightKeyPressed) {
         this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
       } else {
@@ -277,11 +279,10 @@ export class GameController {
       return;
     }
 
+    this.speed += (this.targetSpeed - this.speed) * this.velocity;
+
     if (this.isJumping) {
       this._handleJump();
-      this.speed = this.horizontalMovementPerFrame;
-    } else {
-      this.speed += (this.targetSpeed - this.speed) * this.velocity;
     }
 
     for (const tile of this.tiles) {
