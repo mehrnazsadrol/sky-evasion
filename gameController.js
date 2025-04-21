@@ -370,8 +370,8 @@ export class GameController {
           
           if (this.isJumping || this.isDoubleJumping) {
             if (!slime.jumpedOver &&
-              avatarX + avatarWidth * 0.7 > slimeX &&
-              avatarX < slimeX + slimeWidth * 0.7) {
+              avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
+              avatarX < slimeX + slimeWidth *avatarCollisionThreshold) {
               slime.jumpedOver = true;
               this.hud.addScore(50);
               this.lastSlimeJumped = slime;
