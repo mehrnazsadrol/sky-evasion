@@ -46,10 +46,11 @@ export class Hud {
   }
 
   updateLife(value) {
-    if (this.livesNumber - value > 0) {
-      this.livesNumber-= value;
+    if (this.lives - value > 0) {
+      this.lives-= value;
       this._updateLifeText();
       this._showFloatingText("LIFE LOST!", 0xFF0000, this.c_width / 2, this.c_height / 2, 42);
+      console.log('this.lives', this.lives);
       return true;
     }
     return false;

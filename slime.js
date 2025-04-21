@@ -1,6 +1,5 @@
 export class Slime {
   constructor(container, iniX, iniY, assets, screenHeight, isMoving, type) {
-    console.log('inside slime constructor, iniX, iniY, isMoving, type:', iniX, iniY, isMoving, type);
     this.assets = assets;
     this.animationSpeed = 0.1;
     this.iniX = iniX;
@@ -11,7 +10,6 @@ export class Slime {
     if (type === 0) this.type = 'red';
     else if (type === 1) this.type = 'green';
     else this.type = 'blue';
-    console.log('inside slime constructor + type:', this.type);
 
     this.screenHeight = screenHeight; //red jump
     this.movementDirection = Math.random() > 0.5 ? 1 : -1; //green movement

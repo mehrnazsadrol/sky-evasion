@@ -1,11 +1,10 @@
 export class LevelManager {
-  constructor(hud, assets, totalFamesPerSecond, c_width) {
-    this.hud = hud;
+  constructor(assets, totalFamesPerSecond, c_width) {
     this.assets = assets;
     this.totalFamesPerSecond = totalFamesPerSecond;
     this.c_width = c_width;
 
-    this.currentLevel = 1;
+    this.currentLevel = 7;
     this.maxLevel = 12;
     this.jumpDuration = 500;
     this.maxWalkSpeed = 5;
@@ -28,6 +27,7 @@ export class LevelManager {
     this.tileSequence = []; // holds the width of the tiles. total width is c_width*3
     this.gemSequence = []; // holds the gems info
     this.sequencePointer = 0; // the current tile in the sequence
+    this.lastSpace= 0;
 
     this.diamondAllocation = this._generateDiamondAllocation();
 
@@ -38,7 +38,6 @@ export class LevelManager {
 
   _createSlimeSequence() {
     this.slimeSequence = new Array(this.tileSequence.length).fill().map(() => [0, 0, 0]);
-    console.log('slimeSequence: ' + this.slimeSequence);
     const sortedTiles = [...this.tileSequence].sort((a, b) => a - b);
     const minWidth = sortedTiles[0];
     const maxWidth = sortedTiles[sortedTiles.length - 1];
@@ -157,7 +156,6 @@ export class LevelManager {
         }
       }
     }
-    console.log('finished creating slimes' + this.slimeSequence);
   }
 
   _createTileSequence() {
@@ -224,7 +222,6 @@ export class LevelManager {
     }
 
     this._balanceTotalWidth();
-    console.log('finished creating tiles'+ this.tileSequence);
   }
 
 
@@ -304,10 +301,18 @@ export class LevelManager {
 
     const totalSpaces = this.tileSequence.length - 1;
     while (gems.length < totalSpaces) gems.push('');
-    this.shuffleArray(gems);
+    this._shuffleArray(gems);
 
     this.gemSequence = gems;
-    console.log('finished creating gems');
+  }
+
+
+  _shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
   getIsSlimeMoving() {
@@ -324,15 +329,11 @@ export class LevelManager {
   }
 
   getTileInfo() {
-    console.log('getting tile info , sequencePointer'+ this.sequencePointer);
     const tileWidth = this.tileSequence[this.sequencePointer];
-    console.log('tileWidth: ' + tileWidth);
     const slimeInfo = this.slimeSequence[this.sequencePointer];
-    console.log('slimeInfo: ' + slimeInfo);
     const gemType = this.sequencePointer >= this.tileSequence.length - 1 ? '' : this.gemSequence[this.sequencePointer];
-    console.log('gemType: ' + gemType);
     const tileSpace = this.sequencePointer >= this.tileSequence.length - 1 ? 0 : this._getTileSpace();
-    console.log('tileSpace: ' + tileSpace);
+    this.lastSpace = tileSpace;
     this.sequencePointer++;
     if (this.sequencePointer >= this.tileSequence.length - 1) {
       this.sequencePointer = 0;
@@ -350,7 +351,10 @@ export class LevelManager {
 
   levelUp() {
     this.currentLevel++;
-    this.hud.showLevelText(this.currentLevel);
+  }
+
+  getLevel() {
+    return this.currentLevel;
   }
 
   getJumpDuration() {
@@ -362,5 +366,9 @@ export class LevelManager {
   }
   getMaxRunSpeed() {
     return this.maxRunSpeed;
+  }
+
+  getLastTileSpace() {
+    return this.lastSpace;
   }
 }

@@ -27,16 +27,17 @@ export class GameController {
     this.isJumping = false;
     this.isDoubleJumping = false;
     this.jumpStartTime = 0;
-    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
+
 
     this.tiles = [];
     this.roadTileHeight = c_height / 10;
-
+    this.jumpPeakHeight = (this.c_height - 2 * this.roadTileHeight - this.avatar.getAvatarHeight()) / 2;
 
     this.isFalling = false;
     this.fallSpeed = 10;
 
     this.distanceTraveled = 0;
+    this.totalRoadWidth = 2 * this.c_width; // creating tiles one screen width ahead
 
 
     this.totalTilesGenerated = 0;
@@ -47,7 +48,6 @@ export class GameController {
     this.maxRunSpeed = this.levelManager.getMaxRunSpeed();
     this.jumpDuration = this.levelManager.getJumpDuration();
 
-    console.log('gamecontroller: '+this.maxWalkSpeed, this.maxRunSpeed, this.jumpDuration);
 
     const avatarHeight = this.avatar.getAvatarHeight();
     this.avatar.addToStage(
@@ -57,7 +57,6 @@ export class GameController {
 
     this.createEnvironment();
     this.initEventListeners();
-    console.log('gamecontroller constructor done!');
   }
 
   initEventListeners() {
@@ -139,9 +138,9 @@ export class GameController {
     const tileInfo= this.levelManager.getTileInfo();
 
 
-    const totalRoadWidth = 2 * this.c_width; // creating tiles one screen width ahead
+
     let currentX = this.c_width;
-    while (currentX < totalRoadWidth) {
+    while (currentX < this.totalRoadWidth) {
       this.addTile(currentX, tileInfo.tileWidth, tileInfo.slimeInfo);
       this.addGem(currentX+tileInfo.tileWidth, tileInfo.tileSpace, tileInfo.gemType);
       currentX += tileInfo.tileWidth + tileInfo.tileSpace;
@@ -159,9 +158,9 @@ export class GameController {
   }
 
   addGem(x, tileSpace, gemType) {
-    if (gemType === null || gemType === undefined) return;
+    if (gemType === null || gemType === '') return;
     const gemX = x + tileSpace* 0.5;
-    const gem = new Gem(this.container, gemX, this.roadTileHeight*2, this.assets, gemType);
+    const gem = new Gem(this.container, gemX, this.c_height - this.roadTileHeight*2, this.assets, gemType);
     const lastTile = this.tiles[this.tiles.length - 1];
     if (!lastTile.gems) lastTile.gems = [];
     lastTile.gems.push(gem);
@@ -169,7 +168,6 @@ export class GameController {
 
 
   addTile(x, tileWidth, slimeInfo, isFirstTile = false) {
-    console.log('addTile: '+x, tileWidth, slimeInfo);
     const tile = new PIXI.Graphics();
     tile.beginFill(0x808080);
     tile.drawRect(0, 0, tileWidth, this.roadTileHeight);
@@ -180,14 +178,12 @@ export class GameController {
     if (!isFirstTile && slimeInfo!== null) {
       const slimeCount = slimeInfo.reduce((acc, val) => acc + val, 0);
       const slimeWidth = this.assets.getSlimeTextureWidth();
-      console.log('slimeCount'+slimeCount);
       for (let i = 2; i >0; i--) {
         const slimeX = tile.x + slimeWidth*0.5 + Math.random() * (tile.width - slimeWidth);
         const slimeY = tile.y;
         if (!tile.slimes) tile.slimes = [];
         for (let j = 0; j < slimeInfo[i]; j++) {
           const isSlimeMoving = this.levelManager.getIsSlimeMoving();
-          console.log('isSlimeMoving: '+isSlimeMoving);
           tile.slimes.push(new Slime(this.container, slimeX, slimeY, this.assets, this.c_height, isSlimeMoving, i));
         }
       }
@@ -227,7 +223,11 @@ export class GameController {
 
   update() {
     this.distanceTraveled += this.speed;
-    if (this.distanceTraveled > this.distanceToLevelUp) this.levelManager.levelUp();
+    if (this.distanceTraveled > this.distanceToLevelUp) {
+      this.levelManager.levelUp();
+      const lvl = this.levelManager.getLevel();
+      this.hud.showLevelText(lvl);
+    }
 
     if (this.isFalling) {
       this._handleFall();
@@ -270,9 +270,12 @@ export class GameController {
     }
 
     const lastTile = this.tiles[this.tiles.length - 1];
-    if (lastTile && lastTile.x + lastTile.width < 2 * this.c_width) {
-      const space = this.getCurrentTileSpace();
-      this.addTile(lastTile.x + lastTile.width + space);
+    const lastSpace = this.levelManager.getLastTileSpace();
+    if (lastTile && lastTile.x + lastTile.width < this.totalRoadWidth) {
+      const tileInfo= this.levelManager.getTileInfo();
+      const currentX = lastTile.x + lastTile.width + lastSpace;
+      this.addTile(currentX, tileInfo.tileWidth, tileInfo.slimeInfo);
+      this.addGem(currentX+tileInfo.tileWidth, tileInfo.tileSpace, tileInfo.gemType);
     }
 
     this.backgroundManager.updateBackgroundLayers(this.speed);
@@ -335,12 +338,15 @@ export class GameController {
                 avatarY + avatarHeight < slimeY + slimeHeight * 0.5) {
               slime.jumpedOver = true;
               this.hud.addScore(50);
-              this.lastSlimeJumped = slime;
             }
-          } else if (xCollision && yCollision) {
+          } else if (!slime.jumpedOver && xCollision && yCollision) {
+            slime.jumpedOver = true;
             const slimeType = slime.getSlimeType();
             const cost = slimeType === 0 ? 2 : 1;
-            if (!this.hud.updateLife(cost))
+            console.log('slimeType: '+slimeType+' cost: '+cost);
+            const isAlive = this.hud.updateLife(cost);
+            console.log('isAlive: '+isAlive);
+            if (!isAlive)
               this.gameOver();
           }
         }

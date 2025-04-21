@@ -88,7 +88,7 @@ import {LevelManager} from './levelManager.js';
     app.stage.addChild(gameContainer);
 
     hud = new Hud(gameContainer, c_width, c_height, assets);
-    levelManager = new LevelManager(assets, hud, (app.ticker.FPS || 60), c_width);
+    levelManager = new LevelManager(assets, (app.ticker.FPS || 60), c_width);
 
     gameController = new GameController(
       gameContainer,
