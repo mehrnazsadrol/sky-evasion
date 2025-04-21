@@ -24,6 +24,7 @@ export class Hud {
     });
 
     this._setupHud();
+    this.showLevelText(1);
   }
 
   _setupHud() {
@@ -42,7 +43,6 @@ export class Hud {
 
     this.container.addChild(this.hudContainer);
     this.container.addChild(this.animationContainer);
-    this.setLevel(1);
   }
 
   updateLife(value) {

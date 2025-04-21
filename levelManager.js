@@ -1,8 +1,8 @@
-export class levelManager {
+export class LevelManager {
   constructor(hud, assets, totalFamesPerSecond, c_width) {
     this.hud = hud;
     this.assets = assets;
-    this.totalFramesInOneSecond = totalFamesPerSecond;
+    this.totalFamesPerSecond = totalFamesPerSecond;
     this.c_width = c_width;
 
     this.currentLevel = 1;
@@ -11,9 +11,9 @@ export class levelManager {
     this.maxWalkSpeed = 5;
     this.maxRunSpeed = 15;
     // 60=FPS, 0.5x60x5 = 150
-    this.xJumpDistanceW = this.jumpDuration / 1000 * this.totalFramesInOneSecond * this.maxWalkSpeed;
+    this.xJumpDistanceW = this.jumpDuration / 1000 * this.totalFamesPerSecond * this.maxWalkSpeed;
     // 60=FPS, 0.5x60x15 = 450
-    this.xJumpDistanceR = this.jumpDuration / 1000 * this.totalFramesInOneSecond * this.maxRunSpeed;
+    this.xJumpDistanceR = this.jumpDuration / 1000 * this.totalFamesPerSecond * this.maxRunSpeed;
     // 150x0.5 = 75
     this.minTileSpace = this.xJumpDistanceW * 0.5;
     // 450x0.9 = 405
@@ -31,8 +31,6 @@ export class levelManager {
 
     this.diamondAllocation = this._generateDiamondAllocation();
 
-
-
     this._createTileSequence();
     this._createSlimeSequence();
     this._createGemSequence();
@@ -40,6 +38,7 @@ export class levelManager {
 
   _createSlimeSequence() {
     this.slimeSequence = new Array(this.tileSequence.length).fill().map(() => [0, 0, 0]);
+    console.log('slimeSequence: ' + this.slimeSequence);
     const sortedTiles = [...this.tileSequence].sort((a, b) => a - b);
     const minWidth = sortedTiles[0];
     const maxWidth = sortedTiles[sortedTiles.length - 1];
@@ -158,6 +157,7 @@ export class levelManager {
         }
       }
     }
+    console.log('finished creating slimes' + this.slimeSequence);
   }
 
   _createTileSequence() {
@@ -224,6 +224,7 @@ export class levelManager {
     }
 
     this._balanceTotalWidth();
+    console.log('finished creating tiles'+ this.tileSequence);
   }
 
 
@@ -245,26 +246,26 @@ export class levelManager {
 
     const ratio = targetWidth / currentWidth;
 
-    this.tileSequence = this.tileSequence.map(w => w * ratio);
+    this.tileSequence = this.tileSequence.map(w => Math.floor(w * ratio));
   }
 
   _getTileSpace() {
-    switch (this.currentLevel) {
-      // Level 1-3: walking jump distance (75 + random(150-75))
-      case this.currentLevel <= 3:
-        return Math.floor(Math.random() * (this.xJumpDistanceW - this.minTileSpace)) + this.minTileSpace;
-      // Level 4-6: some walking, some running jump distance (75 + random(202.5-75))
-      case this.currentLevel <= 6:
-        return Math.floor(Math.random() * (this.maxTileSpace * 0.5 - this.minTileSpace)) + this.minTileSpace;
-      case this.currentLevel > 6:
-        // Level 7-12: all running speed jump distance (150 + random(405-75))
-        return Math.floor(Math.random() * (this.maxTileSpace - this.xJumpDistanceW)) + this.xJumpDistanceW;
-    }
+
+    // Level 1-3: walking jump distance (75 + random(150-75))
+    if (this.currentLevel <= 3)
+      return Math.floor(Math.random() * (this.xJumpDistanceW - this.minTileSpace)) + this.minTileSpace;
+    // Level 4-6: some walking, some running jump distance (75 + random(202.5-75))
+    else if (this.currentLevel <= 6)
+      return Math.floor(Math.random() * (this.maxTileSpace * 0.5 - this.minTileSpace)) + this.minTileSpace;
+    // Level 7-12: all running speed jump distance (150 + random(405-75))
+    else
+      return Math.floor(Math.random() * (this.maxTileSpace - this.xJumpDistanceW)) + this.xJumpDistanceW;
   }
+
 
   _randomAllocation(maxAllowed) {
     let remaining = maxAllowed;
-    let allocation = [0,0,0];
+    let allocation = [0, 0, 0];
     while (remaining > 0) {
       const level = Math.floor(Math.random() * 3);
       if (allocation[level] < 2) { // Max 2 per level
@@ -293,19 +294,20 @@ export class levelManager {
   _createGemSequence() {
     this.gemSequence = [];
     if (this.currentLevel <= 2) return;
-    
+
     // Get this level's diamond quota
-    const diamonds = this.diamondAllocation[this.currentLevel];
-    const hearts = Math.max(0, this.currentLevel-2);
+    const diamonds = this.diamondAllocation[this.currentLevel-1];
+    const hearts = Math.max(0, this.currentLevel - 2);
 
     // Create randomized gem sequence
     const gems = [...Array(diamonds).fill('diamond'), ...Array(hearts).fill('heart')];
 
-    const totalSpaces = this.tileSequence.length-1;
+    const totalSpaces = this.tileSequence.length - 1;
     while (gems.length < totalSpaces) gems.push('');
     this.shuffleArray(gems);
-    
+
     this.gemSequence = gems;
+    console.log('finished creating gems');
   }
 
   getIsSlimeMoving() {
@@ -322,12 +324,17 @@ export class levelManager {
   }
 
   getTileInfo() {
+    console.log('getting tile info , sequencePointer'+ this.sequencePointer);
     const tileWidth = this.tileSequence[this.sequencePointer];
+    console.log('tileWidth: ' + tileWidth);
     const slimeInfo = this.slimeSequence[this.sequencePointer];
-    const gemType = this.sequencePointer >= this.tileSequence.length-1 ? ''  : this.gemSequence[this.sequencePointer];
-    const tileSpace = this.sequencePointer >= this.tileSequence.length-1 ? 0 : this.getTileSpace();
+    console.log('slimeInfo: ' + slimeInfo);
+    const gemType = this.sequencePointer >= this.tileSequence.length - 1 ? '' : this.gemSequence[this.sequencePointer];
+    console.log('gemType: ' + gemType);
+    const tileSpace = this.sequencePointer >= this.tileSequence.length - 1 ? 0 : this._getTileSpace();
+    console.log('tileSpace: ' + tileSpace);
     this.sequencePointer++;
-    if (this.sequencePointer >= this.tileSequence.length-1) {
+    if (this.sequencePointer >= this.tileSequence.length - 1) {
       this.sequencePointer = 0;
       this._createTileSequence();
       this._createSlimeSequence();

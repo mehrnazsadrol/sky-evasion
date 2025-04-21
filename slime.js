@@ -1,8 +1,8 @@
 export class Slime {
-  constructor(container, iniX, iniY, assets, currentLevel, screenHeight, isMoving, type) {
+  constructor(container, iniX, iniY, assets, screenHeight, isMoving, type) {
+    console.log('inside slime constructor, iniX, iniY, isMoving, type:', iniX, iniY, isMoving, type);
     this.assets = assets;
     this.animationSpeed = 0.1;
-    this.gameLvl = currentLevel;
     this.iniX = iniX;
     this.iniY = iniY;
     this.isMoving = isMoving;
@@ -11,13 +11,13 @@ export class Slime {
     if (type === 0) this.type = 'red';
     else if (type === 1) this.type = 'green';
     else this.type = 'blue';
+    console.log('inside slime constructor + type:', this.type);
 
     this.screenHeight = screenHeight; //red jump
     this.movementDirection = Math.random() > 0.5 ? 1 : -1; //green movement
     this.jumpPhase = 0;
     this.isJumping = false;
     this.textures = this._getSlimeTextures(false);
-    this.slimeWidth = this.textures[0].width;
     this.animatedSlime = null;
 
     this._createSlime(container, iniX, iniY);
@@ -51,13 +51,9 @@ export class Slime {
     container.addChild(this.animatedSlime);
   }
 
-  _isInTileRange(startX, endX) {
-    return this.animatedSlime.x > startX + this.slimeWidth && this.animatedSlime.x < endX - this.slimeWidth;
-  }
-
   _moveGreenSlime(startX, endX) {
 
-    if (Math.random() < 0.5 || !( this._isInTileRange(startX, endX))) {
+    if (Math.random() < 0.5 || !( this.animatedSlime.x > startX && this.animatedSlime.x < endX)) {
       return;
     }
     const moveSpeed = 0.5;
