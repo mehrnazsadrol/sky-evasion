@@ -1,11 +1,17 @@
 export class Slime {
-  constructor(container, iniX, iniY, assets, currentLevel, screenHeight, type) {
+  constructor(container, iniX, iniY, assets, currentLevel, screenHeight, isMoving, type) {
     this.assets = assets;
-    this.type = type;
     this.animationSpeed = 0.1;
     this.gameLvl = currentLevel;
     this.iniX = iniX;
     this.iniY = iniY;
+    this.isMoving = isMoving;
+
+    this.type = null;
+    if (type === 0) this.type = 'red';
+    else if (type === 1) this.type = 'green';
+    else this.type = 'blue';
+
     this.screenHeight = screenHeight; //red jump
     this.movementDirection = Math.random() > 0.5 ? 1 : -1; //green movement
     this.jumpPhase = 0;
@@ -13,6 +19,7 @@ export class Slime {
     this.textures = this._getSlimeTextures(false);
     this.slimeWidth = this.textures[0].width;
     this.animatedSlime = null;
+
     this._createSlime(container, iniX, iniY);
   }
 
@@ -44,29 +51,6 @@ export class Slime {
     container.addChild(this.animatedSlime);
   }
 
-
-  getSlimeHeight() {
-    return this.textures[0].height;
-  };
-
-  getSlimeWidth() {
-    return this.slimeWidth;
-  }
-
-  updateSlime(speed, tileStartX, tileEndX) {
-    this.animatedSlime.x = this.animatedSlime.x + speed;
-    switch (this.type) {
-      case 'green':
-        this._moveGreenSlime(tileStartX, tileEndX);
-        break;
-      case 'red':
-        this._moveRedSlime();
-        break;
-      default:
-        return;
-    }
-  }
-
   _isInTileRange(startX, endX) {
     return this.animatedSlime.x > startX + this.slimeWidth && this.animatedSlime.x < endX - this.slimeWidth;
   }
@@ -89,10 +73,10 @@ export class Slime {
   }
 
 
-  _moveRedSlime() {
+  _moveRedSlime(maxJumpHeight) {
     if (this.jumpPhase <= 0 && Math.random() < 0.01) {
-      const minHeight = this.screenHeight / 8;
-      const maxHeight = (this.screenHeight / 3) * (this.gameLvl / 12);
+      const minHeight = maxJumpHeight * 0.5;
+      const maxHeight = maxJumpHeight;
       this.jumpHeight = minHeight + Math.random() * (maxHeight - minHeight);
       this.jumpPhase = 60;
       this.isJumping = true;
@@ -117,6 +101,35 @@ export class Slime {
       }
     } else {
       this.animatedSlime.y = this.iniY;
+    }
+  }
+
+  getSlimeType() {
+    if (this.type == 'red') return 0;
+    else if (this.type == 'green') return 1;
+    else return 2;
+  }
+
+  getSlimeHeight() {
+    return this.animatedSlime.height;
+  };
+
+  getSlimeWidth() {
+    return this.animatedSlime.width;
+  }
+
+  updateSlime(speed, tileStartX, tileEndX, maxJumpHeight) {
+    this.animatedSlime.x = this.animatedSlime.x + speed;
+    if (!this.isMoving) return;
+    switch (this.type) {
+      case 'green':
+        this._moveGreenSlime(tileStartX, tileEndX);
+        break;
+      case 'red':
+        this._moveRedSlime(maxJumpHeight);
+        break;
+      default:
+        return;
     }
   }
 

@@ -4,11 +4,9 @@ export class Hud {
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
-    this.currentLevel = 1;
     this.lives = 2;
     this.assets = assets;
     this.bannerHeight = 60;
-    this.maxLevel = 12;
 
     this.highestScore = Number(localStorage.getItem("highestScore")) || 0;
     this.textColor = this.assets.getScoreTextColor();
@@ -47,12 +45,14 @@ export class Hud {
     this.setLevel(1);
   }
 
-  loseLife() {
-    if (this.lives > 0) {
-      this.lives--;
-      this.updateLives();
+  updateLife(value) {
+    if (this.livesNumber - value > 0) {
+      this.livesNumber-= value;
+      this._updateLifeText();
       this._showFloatingText("LIFE LOST!", 0xFF0000, this.c_width / 2, this.c_height / 2, 42);
+      return true;
     }
+    return false;
   }
 
   _setupLivesText() {
@@ -100,7 +100,7 @@ export class Hud {
   }
 
 
-  updateLives() {
+  _updateLifeText() {
     this.livesNumber.text = this.lives.toString();
     this.livesMultiplier.x = this.livesNumber.width + 5;
     this.livesHeart.x = this.livesMultiplier.x + this.livesMultiplier.width + 5;
@@ -169,11 +169,6 @@ export class Hud {
     animate();
   }
 
-  setLevel(level) {
-    this.currentLevel = level;
-    this.showLevelText(level);
-  }
-
   _showFloatingText(text, color, x, y, fontSize = 36) {
     let fontFamily = "RoadRage"; 
     if (text.startsWith("+")) fontFamily = "Chewy";
@@ -224,8 +219,5 @@ export class Hud {
   getHighestScore() {
     return this.highestScore;
   }
-
-  getLvlDifficulty() {
-    return Math.floor(this.currentLevel / this.maxLevel);
-  }
+  
 }

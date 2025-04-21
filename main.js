@@ -8,6 +8,7 @@ import { Assets } from './assets.js';
 import { SettingButtonManager } from './settingButtonManager.js';
 import { AvatarOptions } from './avatarOptions.js';
 import { BackgroundOptions } from './backgroundOptions.js';
+import {LevelManager} from './levelManager.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -44,6 +45,7 @@ import { BackgroundOptions } from './backgroundOptions.js';
   app.canvas.style.transform = "translate(-50%, -50%)";
 
   let hud;
+  let levelManager;
   let gameOverContainer;
   let gameContainer;
   let gameController;
@@ -86,6 +88,7 @@ import { BackgroundOptions } from './backgroundOptions.js';
     app.stage.addChild(gameContainer);
 
     hud = new Hud(gameContainer, c_width, c_height, assets);
+    levelManager = new LevelManager(assets, hud, (app.ticker.FPS || 60), c_width);
 
     gameController = new GameController(
       gameContainer,
@@ -96,7 +99,8 @@ import { BackgroundOptions } from './backgroundOptions.js';
       (app.ticker.FPS || 60),
       gameOver,
       assets,
-      hud);
+      hud,
+      levelManager);
 
     app.ticker.add(updateGameController);
   }
@@ -136,26 +140,6 @@ import { BackgroundOptions } from './backgroundOptions.js';
 
     app.ticker.start();
     isRestarting = false;
-  }
-
-  async function resetGameController() {
-    gameContainer = new PIXI.Container();
-    app.stage.addChild(gameContainer);
-
-    hud = new Hud(gameContainer, c_width, c_height);
-
-    gameController = new GameController(
-      gameContainer,
-      backgroundManager,
-      avatar,
-      c_width,
-      c_height,
-      (app.ticker.FPS || 60),
-      gameOver,
-      assets,
-      hud);
-
-    app.ticker.add(updateGameController);
   }
 
   async function loadAvatarOptionsScreen() {

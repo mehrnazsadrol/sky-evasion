@@ -1,6 +1,5 @@
 export class Gem {
   constructor(container, x, y, assets, type) {
-    console.log('Gem constructor called');
     this.assets = assets;
     this.type = type;
     this.animationSpeed = this.assets.getGemAnimationSpeed(type);
