@@ -4,7 +4,7 @@ export class Hud {
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
-    this.lives = 2;
+    this.lives = 20;
     this.assets = assets;
     this.bannerHeight = 60;
 
@@ -46,11 +46,10 @@ export class Hud {
   }
 
   updateLife(value) {
-    if (this.lives - value > 0) {
-      this.lives-= value;
+    if (this.lives + value > 0) {
+      this.lives += value;
       this._updateLifeText();
-      this._showFloatingText("LIFE LOST!", 0xFF0000, this.c_width / 2, this.c_height / 2, 42);
-      console.log('this.lives', this.lives);
+      // this._showFloatingText("LIFE LOST!", 0xFF0000, this.c_width / 2, this.c_height / 2, 42);
       return true;
     }
     return false;
@@ -110,7 +109,7 @@ export class Hud {
   addScore(score) {
     this.score += score;
     this.scoreText.text = `SCORE: ${this.score}`;
-    this._showFloatingText(`+${score}`, 0x00FF00, this.c_width / 2, this.c_height / 2, 36);
+    // this._showFloatingText(`+${score}`, 0x00FF00, this.c_width / 2, this.c_height / 2, 36);
 
     if (this.score > this.highestScore) {
       this.updateHighestScore(this.score);

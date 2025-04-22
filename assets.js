@@ -122,7 +122,6 @@ export class Assets {
       try {
         const loadedFont = await fontFace.load();
         document.fonts.add(loadedFont);
-        console.log(`Font loaded: ${font.family}`);
       } catch (error) {
         console.error(`Failed to load font ${font.family}:`, error);
       }
