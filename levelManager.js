@@ -306,7 +306,8 @@ export class LevelManager {
     }
 
     const totalSpaces = this.tileSequence.length - 1;
-    while (gems.length < totalSpaces) gems.push('diamond');
+    while (gems.length < totalSpaces/2) gems.push('diamond');
+    while (gems.length < totalSpaces) gems.push('heart');
     this._shuffleArray(gems);
     this.gemSequence = gems;
   }

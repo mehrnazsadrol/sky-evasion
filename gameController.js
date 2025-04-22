@@ -52,6 +52,7 @@ export class GameController {
     this.autoRunStartTime = 0;
     this.autoRunDuration = 5000; // 5 seconds
     this.nextJumpInfo = null;
+    this.isGemCollecting = false;
 
 
     const avatarHeight = this.avatar.getAvatarHeight();
@@ -75,7 +76,7 @@ export class GameController {
     };
 
     window.addEventListener('keydown', (event) => {
-      if (this.autoRun) return;
+      if (this.autoRun || this.isGemCollecting) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = true;
         this.handleMovement(keys, event);
@@ -83,7 +84,7 @@ export class GameController {
     });
 
     window.addEventListener('keyup', (event) => {
-      if (this.autoRun) return;
+      if (this.autoRun || this.isGemCollecting) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = false;
         this.handleMovement(keys, event);
@@ -164,7 +165,6 @@ export class GameController {
     lastTile.gems.push(gem);
   }
 
-
   addTile(x, tileWidth, slimeInfo, isLastTile, isFirstTile = false) {
     const tile = new PIXI.Graphics();
     tile.beginFill(0x808080);
@@ -227,11 +227,11 @@ export class GameController {
       return;
     }
 
-    // Handle autoRun timing
     if (this.autoRun) {
-      if (Date.now() - this.autoRunStartTime >= this.autoRunDuration) {
+      if (Date.now() - this.autoRunStartTime >= this.autoRunDuration && !this.isJumping) {
         this.endAutoRun();
       } else {
+
         this._handleAutoRunJump();
       }
     }
@@ -241,15 +241,13 @@ export class GameController {
       this.nextGem = currentTile.gems[0];
 
     if (!this.autoRun) {
-      // Only apply velocity smoothing when not in autoRun
       this.speed += (this.targetSpeed - this.speed) * this.velocity;
+      if (this.isJumping) this._handleJump();
     } else {
-      // In autoRun, immediately set to autoRun speed
       this.speed = this.autoRunSpeed;
     }
 
     if (this.isJumping) {
-      this._handleJump();
       this._handleGemCollection();
     }
 
@@ -276,10 +274,14 @@ export class GameController {
 
     while (this.tiles.length > 0 && this.tiles[0].x + this.tiles[0].width < 0) {
       const removedTile = this.tiles.shift();
-      if (removedTile.slimes) {
+      if (removedTile.slimes) 
         for (const slime of removedTile.slimes)
           this.container.removeChild(slime.animatedSlime);
-      }
+      
+      if (removedTile.gems) 
+        for (const gem of removedTile.gems)
+          this.container.removeChild(gem.animatedGem);
+      
       this.container.removeChild(removedTile);
     }
 
@@ -299,7 +301,7 @@ export class GameController {
       this.addTile(currentX, tileInfo.tileWidth, tileInfo.slimeInfo, tileInfo.isLastTile);
       this.addGem(currentX + tileInfo.tileWidth, tileInfo.tileSpace, tileInfo.gemType);
     }
-    if (this.autoRun) {
+    if (this.autoRun && !this.nextJumpInfo) {
       this.calculateNextJump();
     }
 
@@ -388,7 +390,6 @@ export class GameController {
 
   _handleGemCollection() {
     if (this.isFalling || !this.nextGem) return;
-
     const avatarX = this.avatar.getAvatarX();
     const avatarWidth = this.avatar.getAvatarWidth();
 
@@ -404,7 +405,6 @@ export class GameController {
         console.log('starting autoRun');
         this.startAutoRun();
       }
-
     }
   }
 
@@ -462,17 +462,17 @@ export class GameController {
 
         // Calculate jump parameters
         const jumpDistance = gapWidth + avatarWidth;
-        const jumpHeight = this.jumpPeakHeight; // Higher jump for autoRun
 
         this.nextJumpInfo = {
-          startTime: Date.now() + timeToGap * 1000,
-          duration: (jumpDistance / this.autoRunSpeed) * 1000,
+          startTime: Date.now() + timeToGap * (1000 / this.totalFramesInOneSecond),
+          duration: (jumpDistance / this.autoRunSpeed) * (1000 / this.totalFramesInOneSecond),
           startX: gapStart - avatarWidth / 2,
           endX: gapEnd + avatarWidth / 2,
-          peakHeight: jumpHeight
+          peakHeight: this.jumpPeakHeight
         };
       }
     }
+    console.log('nextJumpInfo', this.nextJumpInfo);
   }
 
 
@@ -489,15 +489,14 @@ export class GameController {
       const elapsed = currentTime - this.jumpStartTime;
       const progress = Math.min(elapsed / this.nextJumpInfo.duration, 1);
 
-      // Calculate horizontal position (linear)
+
       const newX = this.nextJumpInfo.startX +
         (this.nextJumpInfo.endX - this.nextJumpInfo.startX) * progress;
 
-      // Calculate vertical position (parabolic)
+
       const verticalMovement = -4 * this.nextJumpInfo.peakHeight * progress * (1 - progress);
       const avatarBaseY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
 
-      this.avatar.activeAnimation.x = newX - this.avatar.getAvatarWidth() / 2;
       this.avatar.activeAnimation.y = avatarBaseY + verticalMovement;
 
       if (progress >= 1) {
