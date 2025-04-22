@@ -131,7 +131,72 @@ export class GameController {
       }
     }
   }
+  startAutoRun() {
+    this.autoRun = true;
+    this.originalSpeed = this.speed;
+    this.autoRunStartTime = Date.now();
+    this.targetSpeed = this.autoRunSpeed;
+    this.avatar.setAvatarState('run');
+    
+    // Calculate first jump immediately if needed
+    this.calculateNextJump();
+  }
 
+  endAutoRun() {
+    this.autoRun = false;
+    this.targetSpeed = this.originalSpeed;
+    this.nextJumpInfo = null;
+    
+    if (this.targetSpeed > 0) {
+      this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
+    } else {
+      this.avatar.setAvatarState('idle');
+    }
+  }
+
+  calculateNextJump() {
+    const avatarX = this.avatar.getAvatarX();
+    const avatarWidth = this.avatar.getAvatarWidth();
+    
+    // Find current and next tile
+    let currentTile = null;
+    let nextTile = null;
+    
+    for (let i = 0; i < this.tiles.length; i++) {
+      const tile = this.tiles[i];
+      if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
+        currentTile = tile;
+        if (i < this.tiles.length - 1) {
+          nextTile = this.tiles[i + 1];
+        }
+        break;
+      }
+    }
+    
+    if (currentTile && nextTile) {
+      const gapStart = currentTile.x + currentTile.width;
+      const gapEnd = nextTile.x;
+      const gapWidth = gapEnd - gapStart;
+      
+      if (gapWidth > 0) {
+        // Calculate when we need to jump to clear the gap
+        const distanceToGap = gapStart - (avatarX + avatarWidth/2);
+        const timeToGap = distanceToGap / this.autoRunSpeed;
+        
+        // Calculate jump parameters
+        const jumpDistance = gapWidth + avatarWidth;
+        const jumpHeight = this.jumpPeakHeight * 1.5; // Higher jump for autoRun
+        
+        this.nextJumpInfo = {
+          startTime: Date.now() + timeToGap * 1000,
+          duration: (jumpDistance / this.autoRunSpeed) * 1000,
+          startX: gapStart - avatarWidth/2,
+          endX: gapEnd + avatarWidth/2,
+          peakHeight: jumpHeight
+        };
+      }
+    }
+  }
 
   createEnvironment() {
     this.addTile(0, this.c_width, null, false, true);
@@ -406,72 +471,6 @@ export class GameController {
         this.startAutoRun();
       }
 
-    }
-  }
-
-  startAutoRun() {
-    this.autoRun = true;
-    this.originalSpeed = this.speed;
-    this.autoRunStartTime = Date.now();
-    this.targetSpeed = this.autoRunSpeed;
-    this.avatar.setAvatarState('run');
-    
-    // Calculate first jump immediately if needed
-    this.calculateNextJump();
-  }
-
-  endAutoRun() {
-    this.autoRun = false;
-    this.targetSpeed = this.originalSpeed;
-    this.nextJumpInfo = null;
-    
-    if (this.targetSpeed > 0) {
-      this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
-    } else {
-      this.avatar.setAvatarState('idle');
-    }
-  }
-
-  calculateNextJump() {
-    const avatarX = this.avatar.getAvatarX();
-    const avatarWidth = this.avatar.getAvatarWidth();
-    
-    // Find current and next tile
-    let currentTile = null;
-    let nextTile = null;
-    
-    for (let i = 0; i < this.tiles.length; i++) {
-      const tile = this.tiles[i];
-      if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
-        currentTile = tile;
-        if (i < this.tiles.length - 1) {
-          nextTile = this.tiles[i + 1];
-        }
-        break;
-      }
-    }
-    
-    if (currentTile && nextTile) {
-      const gapStart = currentTile.x + currentTile.width;
-      const gapEnd = nextTile.x;
-      const gapWidth = gapEnd - gapStart;
-      
-      if (gapWidth > 0) {
-        // Calculate when we need to jump to clear the gap
-        const distanceToGap = gapStart - (avatarX + avatarWidth/2);
-        const timeToGap = distanceToGap / this.autoRunSpeed;
-        
-        // Calculate jump parameters
-        const jumpDistance = gapWidth + avatarWidth;
-        
-        this.nextJumpInfo = {
-          startTime: Date.now() + timeToGap * 1000,
-          duration: (jumpDistance / this.autoRunSpeed) * 1000,
-          startX: gapStart - avatarWidth/2,
-          endX: gapEnd + avatarWidth/2,
-          peakHeight: this.jumpPeakHeight
-        };
-      }
     }
   }
 
