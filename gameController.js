@@ -52,7 +52,7 @@ export class GameController {
     this.autoRunStartTime = 0;
     this.autoRunDuration = 5000; // 5 seconds
     this.nextJumpInfo = null;
-    this.isGemCollecting = false;
+
 
 
     const avatarHeight = this.avatar.getAvatarHeight();
@@ -76,7 +76,7 @@ export class GameController {
     };
 
     window.addEventListener('keydown', (event) => {
-      if (this.autoRun || this.isGemCollecting) return;
+      if (this.autoRun) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = true;
         this.handleMovement(keys, event);
@@ -84,7 +84,7 @@ export class GameController {
     });
 
     window.addEventListener('keyup', (event) => {
-      if (this.autoRun || this.isGemCollecting) return;
+      if (this.autoRun) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = false;
         this.handleMovement(keys, event);
