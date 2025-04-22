@@ -53,6 +53,7 @@ export class GameController {
     this.autoRunDuration = 5000; // 5 seconds
     this.nextJumpInfo = null;
     this.isFirstJump = false;
+    this.autoRunEnded = false;
 
 
 
@@ -149,8 +150,9 @@ export class GameController {
 
   getCurrentTile() {
     const avatarX = this.avatar.getAvatarX();
+    const avatarWidth = this.avatar.getAvatarWidth();
     for (const tile of this.tiles) {
-      if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
+      if (avatarX + avatarWidth * 0.5  >= tile.x && avatarX + avatarWidth * 0.5 < tile.x + tile.width) {
         return tile;
       }
     }
@@ -227,25 +229,25 @@ export class GameController {
       this._handleFall();
       return;
     }
-
+    const currentTile = this.getCurrentTile();
     if (this.autoRun) {
-      if (Date.now() - this.autoRunStartTime >= this.autoRunDuration && !this.isJumping) {
+      if (Date.now() - this.autoRunStartTime >= this.autoRunDuration && !this.isJumping &&  (this.avatar.getAvatarX() + this.avatar.getAvatarWidth() < currentTile.x + currentTile.width * 0.67) ) {
         this.endAutoRun();
       } else {
-
         this._handleAutoRunJump();
       }
     }
 
-    const currentTile = this.getCurrentTile();
+
     if (currentTile && currentTile.gems)
       this.nextGem = currentTile.gems[0];
 
-    if (!this.autoRun) {
+    if (this.autoRun || this.autoRunEnded) {
+      this.speed = this.targetSpeed;
+      if (this.autoRunEnded) this.autoRunEnded = false;
+    } else {
       this.speed += (this.targetSpeed - this.speed) * this.velocity;
       if (this.isJumping) this._handleJump();
-    } else {
-      this.speed = this.autoRunSpeed;
     }
 
     if (this.isJumping) {
@@ -416,19 +418,17 @@ export class GameController {
     this.targetSpeed = this.autoRunSpeed;
     this.isFirstJump = true;
     this.calculateNextJump();
+    this.hud.showAutoRunTimer(this.autoRunDuration);
   }
 
   endAutoRun() {
     this.autoRun = false;
-    this.targetSpeed = this.originalSpeed;
+    this.targetSpeed = 0;
     this.nextJumpInfo = null;
     this.isFirstJump = false;
-
-    if (this.targetSpeed > 0) {
-      this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
-    } else {
-      this.avatar.setAvatarState('idle');
-    }
+    this.autoRunEnded = true;
+    this.avatar.setAvatarState('idle');
+    
   }
 
   calculateNextJump() {
@@ -456,15 +456,15 @@ export class GameController {
         const gapWidth = gapEnd - gapStart;
 
         if (gapWidth > 0) {
-          const distanceToGap = gapStart - (avatarX + avatarWidth / 2);
+          const distanceToGap = gapStart - (avatarX + avatarWidth);
           const timeToGap = distanceToGap / this.autoRunSpeed;
           const jumpDistance = gapWidth + avatarWidth;
 
           this.nextJumpInfo = {
             startTime: Date.now() + timeToGap * (1000 / this.totalFramesInOneSecond),
             duration: (jumpDistance / this.autoRunSpeed) * (1000 / this.totalFramesInOneSecond),
-            startX: gapStart - avatarWidth / 2,
-            endX: gapEnd + avatarWidth / 2,
+            startX: gapStart - avatarWidth,
+            endX: gapEnd,
             peakHeight: this.jumpPeakHeight
           };
         }

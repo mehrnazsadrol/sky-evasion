@@ -116,6 +116,90 @@ export class Hud {
     }
   }
 
+  showAutoRunTimer(autoRunDuration) {
+    // Clear any existing timer animations
+    if (this.currentTimerAnimations) {
+      this.currentTimerAnimations.forEach(anim => {
+        if (anim && anim.parent) {
+          this.animationContainer.removeChild(anim);
+        }
+      });
+    }
+    
+    // Convert milliseconds to seconds
+    const totalSeconds = Math.ceil(autoRunDuration / 1000);
+    this.currentTimerAnimations = [];
+    
+    // Create and animate each second's display
+    for (let i = 0; i < totalSeconds; i++) {
+      const timerText = new PIXI.Text((totalSeconds - i).toString(), {
+        fontFamily: "BungeeSpice",
+        fontSize: 36,
+        fill: 0xFFD700, // Gold color
+        align: "center",
+        stroke: 0x8B4513, // Brown stroke
+        strokeThickness: 5
+      });
+      
+      timerText.anchor.set(0.5);
+      timerText.x = this.c_width / 2;
+      timerText.y = this.bannerHeight / 2;
+      timerText.alpha = 0;
+      timerText.scale.set(0.1);
+      
+      this.animationContainer.addChild(timerText);
+      this.currentTimerAnimations.push(timerText);
+      
+      // Schedule each animation to start at the appropriate time
+      setTimeout(() => {
+        this._animateTimerText(timerText, i === totalSeconds - 1);
+      }, i * 1000); // Stagger animations by 1 second
+    }
+  }
+  
+  _animateTimerText(timerText, isLast) {
+    const animationDuration = 1000; // 1 second per number
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+      
+      if (progress < 0.3) {
+        // Grow in
+        const growProgress = progress / 0.3;
+        timerText.alpha = growProgress;
+        timerText.scale.set(0.1 + (growProgress * 0.9));
+      } else if (progress < 0.7) {
+        // Hold at full size
+        timerText.scale.set(1);
+        timerText.alpha = 1;
+      } else {
+        // Shrink out
+        const shrinkProgress = (progress - 0.7) / 0.3;
+        timerText.scale.set(1 - (shrinkProgress * 0.9));
+        timerText.alpha = 1 - shrinkProgress;
+        
+        // On last number, optionally show "GO!" or similar
+        if (isLast && progress > 0.9) {
+          timerText.text = "GO!";
+        }
+      }
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        if (timerText.parent) {
+          this.animationContainer.removeChild(timerText);
+        }
+        // Remove from current animations array
+        this.currentTimerAnimations = this.currentTimerAnimations.filter(t => t !== timerText);
+      }
+    };
+    
+    animate();
+  }
+
   showLevelText(level) {
     if (this.currentLevelAnimation) {
       this.animationContainer.removeChild(this.currentLevelAnimation);
