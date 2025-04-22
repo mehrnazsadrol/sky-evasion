@@ -9,8 +9,9 @@ export class Assets {
   constructor() {
     this.textures = new Map();
     
-    this.cityBackgrounds = {
-      1: { count: 5, textures: [] },
+    this.cityBackgroundConfig = {
+      inGameBg: { count: 5, textures: [] },
+      textColor: 0xFFFFFF,
     };
     
     this.avatarConfig = {
@@ -50,15 +51,6 @@ export class Assets {
       },
     };
     
-    this.cityBackgroundOptions = {
-      baseUrl: "res/city-backgrounds/city-",
-      count: 1,
-      texture: [],
-      textColors: {
-        1: 0xFFFFFF,
-      },
-    };
-    
     this.avatarOptions = {
       baseUrl: "res/avatar-options/",
       textures: [],
@@ -86,21 +78,9 @@ export class Assets {
     await this.loadCityBackgrounds();
     await this.loadAvatarAssets();
     await this.loadSlimeAssets();
-    await this.loadCityOptions();
     await this.loadAvatarOptions();
   }
 
-  /**
-   * Loads city background options for selection screen
-   * @async
-   */
-  async loadCityOptions() {
-    const texturePromises = [];
-    for (let i = 1; i <= this.cityBackgroundOptions.count; i++) {
-      texturePromises.push(PIXI.Assets.load(`${this.cityBackgroundOptions.baseUrl}${i}.png`));
-    }
-    this.cityBackgroundOptions.textures = await Promise.all(texturePromises);
-  }
 
   /**
    * Loads avatar options for selection screen
@@ -185,12 +165,11 @@ export class Assets {
    * @async
    */
   async loadCityBackgrounds() {
-    for (const [key, item] of Object.entries(this.cityBackgrounds)) {
-      const baseUrl = `res/city-backgrounds/city${key}/`;
-      for (let i = 1; i <= item.count; i++) {
-        const bg = await PIXI.Assets.load(`${baseUrl}${i}.png`);
-        item.textures.push(bg);
-      }
+    const item = this.cityBackgroundConfig.inGameBg
+    const baseUrl = `res/city-backgrounds/city1/`;
+    for (let i = 1; i <= item.count; i++) {
+      const bg = await PIXI.Assets.load(`${baseUrl}${i}.png`);
+      item.textures.push(bg);
     }
   }
 
@@ -207,7 +186,7 @@ export class Assets {
    * Gets all city background layers
    */
   getCityBackgrounds() {
-    return this.cityBackgrounds[1];
+    return this.cityBackgroundConfig.inGameBg;
   }
 
   /**
@@ -255,11 +234,10 @@ export class Assets {
   }
 
   /**
-   * Gets text color for current background
+   * Gets text color for the background
    */
   getBackgroundTextColor() {
-    const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
-    return this.cityBackgroundOptions.textColors[currentBackgroundIndex];
+    return this.cityBackgroundConfig.textColor;
   }
 
   /**
