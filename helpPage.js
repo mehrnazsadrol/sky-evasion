@@ -6,287 +6,400 @@ export class HelpPage {
     this.c_height = c_height;
     this.onClosed = onClosed;
     this.app = app;
+
     this.scrollContainer = null;
     this.contentContainer = null;
-    this.closeButton = null;
+    this.textContainer = null;
     this.dragging = false;
-    this.dragStart = 0;
-    this.scrollStart = 0;
+    this.scrollbarThumb = null;
+    this.scrollbarTrack = null;
+    this.scrollParams = null;
+    this.textPadding = 20;
 
-    this.scrollWidth = this.c_width;  // 80% of screen width
-    this.scrollHeight = this.c_height; // 80% of screen height
-    this.scrollX = this.c_width * 0.05;     // 10% margin
-    this.scrollY = this.c_height * 0.05;    // 10% margin
+    this.scrollWidth = this.c_width - this.c_width * 0.1;  // 80% of screen width
+    this.scrollX = this.c_width * 0.05; // 10% margin
+
   }
 
   async init() {
-    await this._setupPage();
+    await this._setupBackgroung();
+    await this._setupPageContent();
   }
 
-  async _setupPage() {
-    const bg = new PIXI.Graphics();
-    bg.beginFill(0xffffff);
-    bg.drawRect(0, 0, this.c_width, this.c_height);
-    bg.endFill();
-    this.container.addChild(bg);
+  async _setupBackgroung() {
+    const bg = this.assets.getTexture('help_background');
+    const bg_sprite = new PIXI.Sprite(bg);
 
+    const targetWidth = this.c_width;
+    const targetHeight = this.c_height;
+    const textureRatio = bg.width / bg.height;
+    const targetRatio = targetWidth / targetHeight;
 
-    console.log('this.scrollWidth', this.scrollWidth, ' this.scrollHeight', this.scrollHeight, ' this.scrollX', this.scrollX, ' this.scrollY', this.scrollY);
-    console.log('container.width', this.container.width, ' container.height', this.container.height);
-    
-        this.scrollContainer = new PIXI.Container();
-    this.container.addChild(this.scrollContainer);
+    let scale, offsetX = 0, offsetY = 0;
+
+    if (textureRatio > targetRatio) {
+      // Texture is wider - fit to height
+      scale = targetHeight / bg.height;
+      offsetX = (bg.width * scale - targetWidth) / 2;
+    } else {
+      // Texture is taller - fit to width
+      scale = targetWidth / bg.width;
+      offsetY = (bg.height * scale - targetHeight) / 2;
+    }
+
+    bg_sprite.width = bg.width * scale;
+    bg_sprite.height = bg.height * scale;
 
     const mask = new PIXI.Graphics();
     mask.beginFill(0xFFFFFF);
-    mask.drawRect(0, 0, this.scrollWidth, this.scrollHeight);
+    mask.drawRect(0, 0, targetWidth, targetHeight);
     mask.endFill();
-    this.container.addChild(mask); // Add to same parent as scrollContainer
-    this.scrollContainer.mask = mask;
+    this.container.addChild(mask);
+    bg_sprite.mask = mask;
+
+
+    bg_sprite.x = -offsetX;
+    bg_sprite.y = -offsetY;
+
+    this.container.addChild(bg_sprite);
+
+  }
+
+  async _setupPageContent() {
 
     this.contentContainer = new PIXI.Container();
-    this.contentContainer.x = 0;
-    this.contentContainer.y = 0;
-    this.contentContainer.backgroundColor = 0xFFFFFF;
-    this.scrollContainer.addChild(this.contentContainer);
-    console.log('scrollcontainer.width', this.scrollContainer.width, ' scrollcontainer.height', this.scrollContainer.height);
+    const bg = new PIXI.Graphics();
+    bg.beginFill(0xFDF1DB, 0.6);
+    bg.drawRect(this.scrollX, 0, this.scrollWidth, this.c_height);
+    bg.endFill();
+    this.contentContainer.addChild(bg);
+    this.container.addChild(this.contentContainer);
 
-    await this._addTextContent();
-    console.log('scrollcontainer.width', this.scrollContainer.width, ' scrollcontainer.height', this.scrollContainer.height);
+    this.textContainer = new PIXI.Container();
+    await this._addTextToContainer();
+    const contentHeight = this._calculateContentHeight();
 
-    await this._addScrollBar();
-    await this._addCloseButton();
+    this.scrollContainer = new PIXI.Container();
+    this.scrollContainer.addChild(this.textContainer);
+    this.scrollContainer.height = contentHeight;
 
-    this.scrollContainer.interactive = true;
-    this.scrollContainer.hitArea = new PIXI.Rectangle(0, 0, this.scrollWidth, this.scrollHeight);
-    this.scrollContainer.on('wheel', (e) => {
-      this._handleScroll(-e.deltaY);
+    const scrollMask = new PIXI.Graphics();
+    scrollMask.beginFill(0xFFFFFF, 0);
+    scrollMask.drawRect(this.scrollX, 100, this.scrollWidth, this.c_height - 200); // 100px top/bottom margin
+    scrollMask.endFill();
+    this.contentContainer.addChild(scrollMask);
+    this.scrollContainer.mask = scrollMask;
+
+    this.contentContainer.addChild(this.scrollContainer);
+
+    this._createScrollBar(contentHeight);
+
+    this._enableScrolling();
+
+    this.container.addChild(this.contentContainer);
+  }
+
+  _createScrollBar(contentHeight) {
+    const scrollbarWidth = 10;
+    const scrollbarX = this.scrollX + this.scrollWidth - scrollbarWidth;
+    const scrollbarHeight = this.c_height - 100; // 100px top margin
+
+    // Scrollbar track
+    this.scrollbarTrack = new PIXI.Graphics();
+    this.scrollbarTrack.beginFill(0xCCCCCC, 0);
+    this.scrollbarTrack.drawRect(scrollbarX, 100, scrollbarWidth, scrollbarHeight);
+    this.scrollbarTrack.endFill();
+    this.contentContainer.addChild(this.scrollbarTrack);
+
+    // Scrollbar thumb
+    const thumbHeight = Math.max(30, scrollbarHeight * (scrollbarHeight / contentHeight));
+    console.log('thumbHeight', thumbHeight);
+    this.scrollbarThumb = new PIXI.Graphics();
+    this.scrollbarThumb.beginFill(0x888888);
+    this.scrollbarThumb.drawRect(scrollbarX, 100, scrollbarWidth, thumbHeight);
+    this.scrollbarThumb.endFill();
+    this.scrollbarThumb.interactive = true;
+    this.scrollbarThumb.buttonMode = true;
+    this.contentContainer.addChild(this.scrollbarThumb);
+
+    // Store scroll parameters
+    this.scrollParams = {
+      contentHeight: contentHeight,
+      scrollHeight: scrollbarHeight,
+      thumbHeight: thumbHeight,
+      minY: 0,
+      maxY: scrollbarHeight - thumbHeight,
+      scrollRatio: (contentHeight - scrollbarHeight) / (scrollbarHeight - thumbHeight)
+    };
+  }
+
+  _enableScrolling() {
+    let lastY = 0;
+    this.container.interactive = true;
+    this.container.on('wheel', (event) => {
+      const delta = event.deltaY;
+      this._scrollContent(delta * 5);
     });
-    this.app.render();
+
+    this.scrollbarThumb.on('mousedown', (event) => {
+      this.dragging = true;
+      lastY = event.data.global.y;
+    });
+
+    this.container.on('mousemove', (event) => {
+      if (!this.dragging) return;
+
+      const deltaY = event.data.global.y - lastY;
+      lastY = event.data.global.y;
+
+      this.scrollbarThumb.y = Math.max(
+        this.scrollParams.minY,
+        Math.min(
+          this.scrollParams.maxY,
+          this.scrollbarThumb.y + deltaY
+        )
+      );
+
+      const scrollPercent = (this.scrollbarThumb.y - this.scrollParams.minY) /
+        (this.scrollParams.maxY - this.scrollParams.minY);
+      this.scrollContainer.y = 100 - (scrollPercent * (this.scrollParams.contentHeight - (this.c_height - 200)));
+    });
+
+    this.container.on('mouseup', () => {
+      this.dragging = false;
+    });
+
+    this.scrollbarTrack.interactive = true;
+    this.scrollbarTrack.on('click', (event) => {
+      const clickY = event.data.global.y - 100;
+      const newThumbY = Math.min(
+        clickY - (this.scrollParams.thumbHeight / 2),
+        this.scrollParams.maxY
+      );
+      this.scrollbarThumb.y = Math.max(this.scrollParams.minY, newThumbY);
+
+      const scrollPercent = (this.scrollbarThumb.y - this.scrollParams.minY) /
+        (this.scrollParams.maxY - this.scrollParams.minY);
+      this.scrollContainer.y = 100 - (scrollPercent * (this.scrollParams.contentHeight - (this.c_height - 200)));
+    });
   }
 
-  async _addScrollBar() {
-    this.maxScroll = Math.max(0, this.contentContainer.height - this.scrollContainer.height);
-    console.log('maxScroll', this.maxScroll, ' contentContainer.height', this.contentContainer.height, ' scrollContainer.height', this.scrollContainer.height);
-    this.scrollRatio = this.scrollContainer.height / Math.max(this.contentContainer.height, 1);
+  _scrollContent(deltaY) {
+    const newThumbY = this.scrollbarThumb.y + (deltaY / this.scrollParams.scrollRatio);
 
-    if (this.maxScroll > 0) {
-      console.log('scrollContainer.width', this.scrollContainer.width, ' scrollContainer.height', this.scrollContainer.height);
-      const track = new PIXI.Graphics();
-      track.beginFill(0xCCCCCC);
-      track.drawRect(this.scrollContainer.width - 10, 0, 8, this.scrollContainer.height);
-      track.endFill();
-      track.alpha = 0.5;
-      this.scrollContainer.addChild(track);
+    this.scrollbarThumb.y = Math.max(
+      this.scrollParams.minY,
+      Math.min(this.scrollParams.maxY, newThumbY)
+    );
 
-      this.scrollThumb = new PIXI.Graphics();
-      this.scrollThumb.beginFill(0x888888);
-      this.scrollThumb.drawRect(this.scrollContainer.width - 10, 0, 8,
-        Math.max(20, this.scrollContainer.height * this.scrollRatio));
-      this.scrollThumb.endFill();
-      this.scrollContainer.addChild(this.scrollThumb);
-
-      this.scrollThumb.interactive = true;
-      this.scrollThumb.buttonMode = true;
-
-      this.scrollThumb.on('mousedown', (e) => {
-        this.dragging = true;
-        this.dragStart = e.data.global.y;
-        this.scrollStart = this.contentContainer.y;
-      });
-
-      const onDragMove = (e) => {
-        if (this.dragging) {
-          const delta = e.data.global.y - this.dragStart;
-          const newY = this.scrollStart + delta;
-          this._scrollTo(newY);
-        }
-      };
-
-      const onDragEnd = () => {
-        this.dragging = false;
-      };
-
-      this.scrollContainer.on('mousemove', onDragMove);
-      this.scrollContainer.on('mouseup', onDragEnd);
-      this.scrollContainer.on('mouseupoutside', onDragEnd);
-    }
+    const scrollPercent = (this.scrollbarThumb.y - this.scrollParams.minY) /
+      (this.scrollParams.maxY - this.scrollParams.minY);
+    this.scrollContainer.y = 100 - (scrollPercent * (this.scrollParams.contentHeight - (this.c_height - 200)));
   }
 
-  async _scrollTo(y) {
-    const maxY = 0;
-    const minY = -this.maxScroll;
-    y = Math.min(maxY, Math.max(minY, y));
-    this.contentContainer.y = y;
-
-    if (this.scrollThumb && this.maxScroll > 0) {
-      const thumbPos = (-y / this.maxScroll) * (this.scrollContainer.height - this.scrollThumb.height);
-      this.scrollThumb.y = thumbPos;
-    }
-    this.app.render();
+  _calculateContentHeight() {
+    let maxY = 0;
+    this.textContainer.children.forEach(child => {
+      maxY = Math.max(maxY, child.y + child.height);
+    });
+    return maxY + 100; // Add bottom margin
   }
 
-  _handleScroll(delta) {
-    const newY = this.contentContainer.y + delta * 0.5;
-    this._scrollTo(newY);
+  _createTextElement(text, style, x = 0, y = 0, anchor = { x: 0, y: 0 }) {
+    const textElement = new PIXI.Text(text, style);
+    textElement.x = x;
+    textElement.y = y;
+    textElement.anchor.set(anchor.x, anchor.y);
+    this.textContainer.addChild(textElement);
+    return textElement;
   }
 
-  async _addTextContent() {
-    const contentWidth = this.scrollWidth- (this.maxScroll > 0 ? 30 : 10);
-    let currentY = 0;
-    const padding = 20;
-    console.log('contentWidth', contentWidth, ' scrollWidth', this.scrollWidth, ' maxScroll', this.maxScroll);
-    const titleStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
-      fontSize: 28,
+  async _addTextToContainer() {
+    const titleStyle = {
+      fontFamily: 'ubuntu-medium',
+      fontSize: 40,
       fontWeight: 'bold',
       fill: 0x000000,
       align: 'center'
-    });
+    };
 
-    const subtitleStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
+    const headerStyle = {
+      fontFamily: 'ubuntu-medium',
+      fontSize: 28,
+      fontWeight: 'bold',
+      fill: 0x000000,
+      align: 'left'
+    };
+
+    const subHeaderStyle = {
+      fontFamily: 'ubuntu-medium',
       fontSize: 22,
       fontWeight: 'bold',
       fill: 0x000000,
       align: 'left'
-    });
+    };
 
-    const normalStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
-      fontSize: 18,
+    const bodyStyle = {
+      fontFamily: 'ubuntu-medium',
+      fontSize: 16,
       fill: 0x000000,
       align: 'left',
       wordWrap: true,
-      wordWrapWidth: contentWidth,
-      lineHeight: 24
-    });
+      wordWrapWidth: this.scrollWidth - 40 // Account for padding
+    };
 
-    const bulletStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
-      fontSize: 18,
-      fill: 0x000000,
-      align: 'left',
-      wordWrap: true,
-      wordWrapWidth: contentWidth - 20,
-      lineHeight: 24
-    });
+    const headerLineSpacing = 40;
+    const paragraphSpacing = 80;
+    const bodyLineSpacing = 30;
 
-    // Title
-    const title = new PIXI.Text('Sky Evasion - Help Guide', titleStyle);
-    title.x = contentWidth / 2;
-    title.y = currentY;
-    title.anchor.set(0.5, 0);
-    this.contentContainer.addChild(title);
-    currentY += title.height + padding * 2;
 
-    // Sections
-    currentY = this._addSection('Game Objective', [
-      'Escape the alien slime invasion by running across rooftops! Survive as long as possible while avoiding slimes and gaps between buildings. Your score increases the farther you run and the more slimes you jump over.'
-    ], currentY, contentWidth, subtitleStyle, normalStyle) + padding;
+    // Add title (centered)
+    const title = this._createTextElement(
+      'Sky Evasion (Game Guide)',
+      titleStyle,
+      (this.scrollWidth) / 2,
+      0,
+      { x: 0.5, y: 0 }
+    );
 
-    currentY = this._addSection('Controls', [
-      'Move Forward: Hold → (Right Arrow) or D to walk.',
-      'Double-tap to sprint (faster but riskier).',
-      'Jump: Press ↑ (Up Arrow) or W to jump.',
-      'Jumps only move you upward—you must hold →/D to keep moving forward!',
-      'Double Jump: Press ↑/W again mid-air for an extra boost.'
-    ], currentY, contentWidth, subtitleStyle, bulletStyle) + padding;
+    let currentY = title.height + 40;
 
-    currentY = this._addSection('Mechanics', [
-      'Movement & Speed',
-      'Walk (Slow): Safe for precise jumps but covers less distance.',
-      'Run (Fast): Covers more ground but reduces reaction time and makes jumps riskier.',
-      '',
+    this._createTextElement(
+      'Game Objective',
+      headerStyle,
+      this.scrollX + this.textPadding,
+      currentY
+    );
+    currentY += headerLineSpacing;
+
+    this._createTextElement(
+      'Escape the alien slime invasion by running across rooftops! ' +
+      'You can\'t go backward—forward is the only way. Survive as ' +
+      'long as possible while avoiding slimes and gaps.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += paragraphSpacing;
+
+    // Controls section
+    this._createTextElement(
+      'Controls',
+      headerStyle,
+      this.scrollX + this.textPadding,
+      currentY
+    );
+    currentY += headerLineSpacing;
+
+
+    this._createTextElement(
+      'Movement',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      '• Move Forward: Hold → (Right Arrow) or D to walk.\n' +
+      '• Double-tap to sprint (faster but riskier).',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += headerLineSpacing;
+
+    this._createTextElement(
       'Jumping',
-      'Single Jump: Clears small gaps and slimes.',
-      'Double Jump: Extends your jump distance and height for trickier obstacles.',
-      '',
-      'No Backwards Movement: The city collapses behind you—keep moving right or fall!',
-      'Jumping ≠ Forward Movement: Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps.',
-      '',
-      'Speed Matters:',
-      'Walk (slow): Easier to time jumps.',
-      'Run (fast): Covers ground quicker but shortens reaction time.',
-      '',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      '• Jump: Press ↑ (Up Arrow) or W to jump.\n' +
+      '• Jumps only move you upward—you must hold →/D to keep moving forward!\n' +
+      '• Double Jump: Press ↑/W again mid-air for an extra boost.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += paragraphSpacing;
+
+    // Key Mechanics section
+    this._createTextElement(
+      'Key Mechanics',
+      headerStyle,
+      this.scrollX + this.textPadding,
+      currentY
+    );
+    currentY += headerLineSpacing;
+
+    this._createTextElement(
+      'No Backwards Movement',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      'The city collapses behind you—keep moving right or fall!',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      'Jumping ≠ Forward Movement',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      'Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      'Speed Matters',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
+
+    this._createTextElement(
+      '• Walk (slow): Easier to time jumps.\n' +
+      '• Run (fast): Covers ground quicker but shortens reaction time.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += headerLineSpacing;
+
+    // Final note
+    this._createTextElement(
       'Why This Matters',
-      'If you stop holding →/D, you\'ll halt mid-air during a jump—likely falling into a gap!',
-      'Always keep moving to survive longer!'
-    ], currentY, contentWidth, subtitleStyle, bulletStyle) + padding;
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += bodyLineSpacing;
 
-    currentY = this._addSection('Obstacles', [
-      'Slimes: Touch them, and it\'s game over! Jump over them to earn bonus points.',
-      'Gaps: Fall between buildings, and your run ends. Time your jumps carefully!'
-    ], currentY, contentWidth, subtitleStyle, bulletStyle) + padding;
-
-    currentY = this._addSection('Difficulty', [
-      'The game gets harder the longer you survive:',
-      'Slimes spawn more frequently.',
-      'Gaps between rooftops become wider.'
-    ], currentY, contentWidth, subtitleStyle, bulletStyle) + padding;
-
-    currentY = this._addSection('Scoring', [
-      'Distance: Earn points for every rooftop you cross.',
-      'Slimes Jumped: Bonus points for each slime you clear.'
-    ], currentY, contentWidth, subtitleStyle, bulletStyle) + padding;
-
-    // Tip
-    const tip = new PIXI.Text('Tip: Master switching between walking and running to handle gaps and slimes effectively!', normalStyle);
-    tip.x = contentWidth / 2;
-    tip.y = currentY;
-    tip.anchor.set(0.5, 0);
-    this.contentContainer.addChild(tip);
-    currentY += tip.height + padding;
-
-    // Good luck
-    const luck = new PIXI.Text('Good luck, and evade those slimes!', titleStyle);
-    luck.style.fontSize = 24;
-    luck.x = contentWidth / 2;
-    luck.y = currentY;
-    luck.anchor.set(0.5, 0);
-    this.contentContainer.addChild(luck);
-  }
-
-  _addSection(title, lines, y, width, titleStyle, textStyle) {
-    const titleText = new PIXI.Text(title, titleStyle);
-    titleText.x = 0;
-    titleText.y = y;
-    this.contentContainer.addChild(titleText);
-    y += titleText.height + 10;
-
-    for (const line of lines) {
-      if (line === '') {
-        y += 10;
-        continue;
-      }
-
-      const isSubtitle = line.endsWith(':') || ['Movement & Speed', 'Jumping', 'Why This Matters'].includes(line);
-      const style = isSubtitle ? new PIXI.TextStyle({ ...textStyle, fontWeight: 'bold' }) : textStyle;
-
-      const text = new PIXI.Text(line, style);
-      text.x = isSubtitle ? 0 : 20;
-      text.y = y;
-      this.contentContainer.addChild(text);
-      y += text.height + 5;
-    }
-
-    return y;
-  }
-
-  async _addCloseButton() {
-    this.closeButton = new PIXI.Sprite(this.assets.getTexture('close_icon'));
-    this.closeButton.width = 60;
-    this.closeButton.height = 60;
-    this.closeButton.anchor.set(0.5);
-    this.closeButton.x = this.c_width - 40;
-    this.closeButton.y = 40;
-    this.closeButton.interactive = true;
-    this.closeButton.buttonMode = true;
-
-    this.closeButton.on('pointerdown', () => {
-      this.onClosed();
-    });
-
-    this.container.addChild(this.closeButton);
+    this._createTextElement(
+      'If you stop holding →/D, you\'ll halt mid-air during a jump—likely falling into a gap!' +
+      'Always keep moving to survive longer.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
   }
 }
