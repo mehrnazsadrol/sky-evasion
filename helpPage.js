@@ -24,27 +24,19 @@ export class HelpPage {
   }
 
   async _setupPage() {
-    // Create main container with white background
     const bg = new PIXI.Graphics();
     bg.beginFill(0xffffff);
     bg.drawRect(0, 0, this.c_width, this.c_height);
     bg.endFill();
     this.container.addChild(bg);
 
-    // Calculate scroll container dimensions
-
-
 
     console.log('this.scrollWidth', this.scrollWidth, ' this.scrollHeight', this.scrollHeight, ' this.scrollX', this.scrollX, ' this.scrollY', this.scrollY);
     console.log('container.width', this.container.width, ' container.height', this.container.height);
     
-    
-    // Create scrollable container
-    this.scrollContainer = new PIXI.Container();
+        this.scrollContainer = new PIXI.Container();
     this.container.addChild(this.scrollContainer);
 
-
-    // Create mask for scrolling - MUST be added to the same parent as the scrollContainer
     const mask = new PIXI.Graphics();
     mask.beginFill(0xFFFFFF);
     mask.drawRect(0, 0, this.scrollWidth, this.scrollHeight);
@@ -52,7 +44,6 @@ export class HelpPage {
     this.container.addChild(mask); // Add to same parent as scrollContainer
     this.scrollContainer.mask = mask;
 
-    // Create content container
     this.contentContainer = new PIXI.Container();
     this.contentContainer.x = 0;
     this.contentContainer.y = 0;
@@ -60,34 +51,27 @@ export class HelpPage {
     this.scrollContainer.addChild(this.contentContainer);
     console.log('scrollcontainer.width', this.scrollContainer.width, ' scrollcontainer.height', this.scrollContainer.height);
 
-    // Add all content first so we can calculate scroll dimensions
     await this._addTextContent();
     console.log('scrollcontainer.width', this.scrollContainer.width, ' scrollcontainer.height', this.scrollContainer.height);
 
     await this._addScrollBar();
     await this._addCloseButton();
 
-    // Enable mouse wheel scrolling
     this.scrollContainer.interactive = true;
     this.scrollContainer.hitArea = new PIXI.Rectangle(0, 0, this.scrollWidth, this.scrollHeight);
     this.scrollContainer.on('wheel', (e) => {
       this._handleScroll(-e.deltaY);
     });
-
-    // Force initial render
     this.app.render();
   }
 
   async _addScrollBar() {
-    // Calculate scroll dimensions after content is added
     this.maxScroll = Math.max(0, this.contentContainer.height - this.scrollContainer.height);
     console.log('maxScroll', this.maxScroll, ' contentContainer.height', this.contentContainer.height, ' scrollContainer.height', this.scrollContainer.height);
     this.scrollRatio = this.scrollContainer.height / Math.max(this.contentContainer.height, 1);
 
-    // Only add scrollbar if content is scrollable
     if (this.maxScroll > 0) {
       console.log('scrollContainer.width', this.scrollContainer.width, ' scrollContainer.height', this.scrollContainer.height);
-      // Scrollbar track
       const track = new PIXI.Graphics();
       track.beginFill(0xCCCCCC);
       track.drawRect(this.scrollContainer.width - 10, 0, 8, this.scrollContainer.height);
@@ -95,7 +79,6 @@ export class HelpPage {
       track.alpha = 0.5;
       this.scrollContainer.addChild(track);
 
-      // Scrollbar thumb
       this.scrollThumb = new PIXI.Graphics();
       this.scrollThumb.beginFill(0x888888);
       this.scrollThumb.drawRect(this.scrollContainer.width - 10, 0, 8,
@@ -103,7 +86,6 @@ export class HelpPage {
       this.scrollThumb.endFill();
       this.scrollContainer.addChild(this.scrollThumb);
 
-      // Make scrollbar draggable
       this.scrollThumb.interactive = true;
       this.scrollThumb.buttonMode = true;
 
@@ -137,7 +119,6 @@ export class HelpPage {
     y = Math.min(maxY, Math.max(minY, y));
     this.contentContainer.y = y;
 
-    // Update scroll thumb position
     if (this.scrollThumb && this.maxScroll > 0) {
       const thumbPos = (-y / this.maxScroll) * (this.scrollContainer.height - this.scrollThumb.height);
       this.scrollThumb.y = thumbPos;
@@ -151,12 +132,12 @@ export class HelpPage {
   }
 
   async _addTextContent() {
-    const contentWidth = this.scrollWidth- (this.maxScroll > 0 ? 30 : 10); // Adjust for scrollbar if present
+    const contentWidth = this.scrollWidth- (this.maxScroll > 0 ? 30 : 10);
     let currentY = 0;
     const padding = 20;
     console.log('contentWidth', contentWidth, ' scrollWidth', this.scrollWidth, ' maxScroll', this.maxScroll);
     const titleStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial', // Fallback if 'ubuntu-medium' not available
+      fontFamily: 'Arial',
       fontSize: 28,
       fontWeight: 'bold',
       fill: 0x000000,
