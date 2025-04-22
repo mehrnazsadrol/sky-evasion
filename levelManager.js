@@ -4,7 +4,7 @@ export class LevelManager {
     this.totalFamesPerSecond = totalFamesPerSecond;
     this.c_width = c_width;
 
-    this.currentLevel = 7;
+    this.currentLevel = 10;
     this.maxLevel = 12;
     this.jumpDuration = 500;
     this.maxWalkSpeed = 5;
@@ -34,6 +34,7 @@ export class LevelManager {
     this._createTileSequence();
     this._createSlimeSequence();
     this._createGemSequence();
+    console.log(this.gemSequence);
   }
 
   _createSlimeSequence() {
@@ -274,35 +275,39 @@ export class LevelManager {
   }
 
   _generateDiamondAllocation() {
-    const allocation = [];
-
     // Level 1-3: No diamonds
-    allocation.push([0, 0, 0]);
+    let allocation = [0,0,0];
+    let temp = []
     // level 4-6: 1 diamond
-    allocation.push(this._randomAllocation(1));
+    temp = this._randomAllocation(1);
+    allocation = [...allocation, ...temp];
     // level 7-9: 3 diamonds
-    allocation.push(this._randomAllocation(3));
+    temp = this._randomAllocation(3);
+    allocation = [...allocation, ...temp];
     // level 10-12: 5 diamonds
-    allocation.push(this._randomAllocation(5));
+    temp = this._randomAllocation(6);
+    allocation = [...allocation, ...temp];
 
     return allocation;
   }
 
   _createGemSequence() {
     this.gemSequence = [];
-    if (this.currentLevel <= 2) return;
+    let gems = [];
 
-    // Get this level's diamond quota
     const diamonds = this.diamondAllocation[this.currentLevel-1];
-    const hearts = Math.max(0, this.currentLevel - 2);
+    const hearts =  Math.max(0, this.currentLevel - 2);
 
-    // Create randomized gem sequence
-    const gems = [...Array(diamonds).fill('diamond'), ...Array(hearts).fill('heart')];
+    if (diamonds > 0) {
+      gems=[...Array(diamonds).fill('diamond')];
+    }
+    if (hearts > 0) {
+      gems=[...gems,...Array(hearts).fill('heart')];
+    }
 
     const totalSpaces = this.tileSequence.length - 1;
     while (gems.length < totalSpaces) gems.push('');
     this._shuffleArray(gems);
-
     this.gemSequence = gems;
   }
 
@@ -334,8 +339,10 @@ export class LevelManager {
     const gemType = this.sequencePointer >= this.tileSequence.length - 1 ? '' : this.gemSequence[this.sequencePointer];
     const tileSpace = this.sequencePointer >= this.tileSequence.length - 1 ? 0 : this._getTileSpace();
     this.lastSpace = tileSpace;
+    let isLastTile = false;
     this.sequencePointer++;
     if (this.sequencePointer >= this.tileSequence.length - 1) {
+      isLastTile = true;
       this.sequencePointer = 0;
       this._createTileSequence();
       this._createSlimeSequence();
@@ -346,6 +353,7 @@ export class LevelManager {
       slimeInfo: slimeInfo,
       tileSpace: tileSpace,
       gemType: gemType,
+      isLastTile: isLastTile,
     };
   }
 
