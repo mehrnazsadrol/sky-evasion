@@ -52,6 +52,7 @@ export class GameController {
     this.autoRunStartTime = 0;
     this.autoRunDuration = 5000; // 5 seconds
     this.nextJumpInfo = null;
+    this.isFirstJump = false;
 
 
 
@@ -413,7 +414,8 @@ export class GameController {
     this.originalSpeed = this.speed;
     this.autoRunStartTime = Date.now();
     this.targetSpeed = this.autoRunSpeed;
-    this.avatar.setAvatarState('run');
+    // this.avatar.setAvatarState('run');
+    this.isFirstJump = true;
 
     // Calculate first jump immediately if needed
     this.calculateNextJump();
@@ -423,6 +425,7 @@ export class GameController {
     this.autoRun = false;
     this.targetSpeed = this.originalSpeed;
     this.nextJumpInfo = null;
+    this.isFirstJump = false;
 
     if (this.targetSpeed > 0) {
       this.avatar.setAvatarState(this.targetSpeed === this.maxRunSpeed ? 'run' : 'walk');
@@ -435,44 +438,70 @@ export class GameController {
     const avatarX = this.avatar.getAvatarX();
     const avatarWidth = this.avatar.getAvatarWidth();
 
-    // Find current and next tile
-    let currentTile = null;
-    let nextTile = null;
+    if (!this.isFirstJump){
+      // Find current and next tile
+      let currentTile = null;
+      let nextTile = null;
 
-    for (let i = 0; i < this.tiles.length; i++) {
-      const tile = this.tiles[i];
-      if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
-        currentTile = tile;
-        if (i < this.tiles.length - 1) {
-          nextTile = this.tiles[i + 1];
+      for (let i = 0; i < this.tiles.length; i++) {
+        const tile = this.tiles[i];
+        if (avatarX >= tile.x && avatarX < tile.x + tile.width) {
+          currentTile = tile;
+          if (i < this.tiles.length - 1) {
+            nextTile = this.tiles[i + 1];
+          }
+          break;
         }
-        break;
       }
-    }
 
-    if (currentTile && nextTile) {
-      const gapStart = currentTile.x + currentTile.width;
-      const gapEnd = nextTile.x;
-      const gapWidth = gapEnd - gapStart;
+      if (currentTile && nextTile) {
+        const gapStart = currentTile.x + currentTile.width;
+        const gapEnd = nextTile.x;
+        const gapWidth = gapEnd - gapStart;
 
-      if (gapWidth > 0) {
-        // Calculate when we need to jump to clear the gap
-        const distanceToGap = gapStart - (avatarX + avatarWidth / 2);
-        const timeToGap = distanceToGap / this.autoRunSpeed;
+        if (gapWidth > 0) {
+          // Calculate when we need to jump to clear the gap
+          const distanceToGap = gapStart - (avatarX + avatarWidth / 2);
+          const timeToGap = distanceToGap / this.autoRunSpeed;
 
-        // Calculate jump parameters
-        const jumpDistance = gapWidth + avatarWidth;
+          // Calculate jump parameters
+          const jumpDistance = gapWidth + avatarWidth;
+
+          this.nextJumpInfo = {
+            startTime: Date.now() + timeToGap * (1000 / this.totalFramesInOneSecond),
+            duration: (jumpDistance / this.autoRunSpeed) * (1000 / this.totalFramesInOneSecond),
+            startX: gapStart - avatarWidth / 2,
+            endX: gapEnd + avatarWidth / 2,
+            peakHeight: this.jumpPeakHeight
+          };
+        }
+      }
+    } else {
+      let nextTile = null;
+
+      for (let i = 0; i < this.tiles.length-1; i++) {
+        const prevTile = this.tiles[i];
+        nextTile = this.tiles[i + 1];
+        if (avatarX >= prevTile.x + prevTile.width && avatarX < nextTile.x + nextTile.width) {
+          break;
+        }
+      }
+
+      if (nextTile) {
+
+        const jumpDistance = nextTile.x - avatarX;
+        const peakHeight = this.c_height - this.avatar.getAvatarY() - this.roadTileHeight - this.avatar.getAvatarHeight();
 
         this.nextJumpInfo = {
-          startTime: Date.now() + timeToGap * (1000 / this.totalFramesInOneSecond),
+          startTime: Date.now(),
           duration: (jumpDistance / this.autoRunSpeed) * (1000 / this.totalFramesInOneSecond),
-          startX: gapStart - avatarWidth / 2,
-          endX: gapEnd + avatarWidth / 2,
-          peakHeight: this.jumpPeakHeight
+          startX: avatarX,
+          endX: nextTile.x,
+          peakHeight: peakHeight
         };
       }
     }
-    console.log('nextJumpInfo', this.nextJumpInfo);
+    console.log('isFirstJump:', this.isFirstJump,' - nextJumpInfo', this.nextJumpInfo);
   }
 
 
@@ -489,17 +518,24 @@ export class GameController {
       const elapsed = currentTime - this.jumpStartTime;
       const progress = Math.min(elapsed / this.nextJumpInfo.duration, 1);
 
+      let verticalMovement;
+      if (!this.isFirstJump) {
 
-      const newX = this.nextJumpInfo.startX +
-        (this.nextJumpInfo.endX - this.nextJumpInfo.startX) * progress;
-
-
-      const verticalMovement = -4 * this.nextJumpInfo.peakHeight * progress * (1 - progress);
+        verticalMovement = -4 * this.nextJumpInfo.peakHeight * progress * (1 - progress);
+      } else {
+        const currentY = this.avatar.getAvatarY();
+        const targetY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
+        verticalMovement = currentY + (targetY - currentY) * progress - targetY;
+      }
       const avatarBaseY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
 
       this.avatar.activeAnimation.y = avatarBaseY + verticalMovement;
 
       if (progress >= 1) {
+        if (this.isFirstJump) {
+          this.isFirstJump = false;
+          console.log('isFirstJump ended');
+        }
         this.isJumping = false;
         this.nextJumpInfo = null;
         this.avatar.setAvatarState('run');
