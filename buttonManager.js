@@ -38,6 +38,7 @@ export class ButtonManager {
     this._createText();
     await this._createStartButton();
     await this._createCharacterChangeButton();
+    await this._createHelpButton();
   }
 
   /**
@@ -66,6 +67,11 @@ export class ButtonManager {
    */
   async _createCharacterChangeButton() {
     const button = await this.settingButtonManager.createCharacterChangeButton();
+    this.firstPageContainer.addChild(button);
+  }
+
+  async _createHelpButton() {
+    const button = await this.settingButtonManager.createHelpButton();
     this.firstPageContainer.addChild(button);
   }
 

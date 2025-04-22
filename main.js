@@ -7,6 +7,7 @@ import { Hud } from './hud.js';
 import { Assets } from './assets.js';
 import { SettingButtonManager } from './settingButtonManager.js';
 import { AvatarOptions } from './avatarOptions.js';
+import { HelpPage } from './helpPage.js';
 
 (async () => {
   // Get DOM elements and canvas dimensions
@@ -61,6 +62,7 @@ import { AvatarOptions } from './avatarOptions.js';
     c_width,
     c_height,
     loadAvatarOptionsScreen,
+    loadHelpScreen,
     assets
   );
 
@@ -162,6 +164,28 @@ import { AvatarOptions } from './avatarOptions.js';
 
     app.ticker.start();
     isRestarting = false;
+  }
+
+  async function loadHelpScreen() {
+    const helpContainer = new PIXI.Container();
+    const helpPage = new HelpPage(
+      app,
+      helpContainer,
+      assets,
+      c_width,
+      c_height,
+      closeHelpPage
+    );
+    await helpPage.init();
+    app.stage.addChild(helpContainer);
+    app.renderer.render(app.stage);
+
+    function closeHelpPage() {
+      if (helpContainer) {
+        app.stage.removeChild(helpContainer);
+        app.renderer.render(app.stage);
+      }
+    }
   }
 
   /**
