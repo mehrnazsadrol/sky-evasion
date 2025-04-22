@@ -24,8 +24,3 @@ body {
     height: 100%;
     width: 100%;
 }
-
-@font-face {
-    font-family: 'ubuntu-medium';
-    src: url('res/fonts/ubuntu-medium.ttf') format('truetype');
-}

@@ -75,10 +75,11 @@ export class Assets {
       this.textures.set(asset.name, texture);
     }
 
-    await this.loadCityBackgrounds();
-    await this.loadAvatarAssets();
-    await this.loadSlimeAssets();
-    await this.loadAvatarOptions();
+    await this._loadCityBackgrounds();
+    await this._loadAvatarAssets();
+    await this._loadSlimeAssets();
+    await this._loadAvatarOptions();
+    await this._loadFonts();
   }
 
 
@@ -86,7 +87,7 @@ export class Assets {
    * Loads avatar options for selection screen
    * @async
    */
-  async loadAvatarOptions() {
+  async _loadAvatarOptions() {
     const texturePromises = [];
     texturePromises.push(PIXI.Assets.load(`${this.avatarOptions.baseUrl}girl-avatar.png`));
     texturePromises.push(PIXI.Assets.load(`${this.avatarOptions.baseUrl}boy-avatar.png`));
@@ -97,7 +98,7 @@ export class Assets {
    * Loads all slime assets
    * @async
    */
-  async loadSlimeAssets() {
+  async _loadSlimeAssets() {
     for (const [key, item] of Object.entries(this.slimeConfig)) {
       const textures = await this._loadSlimeTextures(item.url, item.count);
       this.slimeConfig[key].textures = textures;
@@ -138,7 +139,7 @@ export class Assets {
    * Loads all avatar animation assets
    * @async
    */
-  async loadAvatarAssets() {
+  async _loadAvatarAssets() {
     for (const [avatarType, animations] of Object.entries(this.avatarConfig)) {
       for (const [animationKey, { url, count }] of Object.entries(animations.assetUrl)) {
         const textures = await this._loadTextures(url, count);
@@ -164,13 +165,35 @@ export class Assets {
    * Loads parallax background layers
    * @async
    */
-  async loadCityBackgrounds() {
+  async _loadCityBackgrounds() {
     const item = this.cityBackgroundConfig.inGameBg
     const baseUrl = `res/city-backgrounds/city1/`;
     for (let i = 1; i <= item.count; i++) {
       const bg = await PIXI.Assets.load(`${baseUrl}${i}.png`);
       item.textures.push(bg);
     }
+  }
+
+  /**
+   * Loads fonts for the game
+   * @async
+   */
+  async _loadFonts() {
+    const fontDefinitions = [
+      { file: 'ubuntu-medium.ttf', family: 'ubuntu-medium' },
+    ];
+
+    await Promise.all(fontDefinitions.map(async (font) => {
+      const fontPath = `res/fonts/${font.file}`;
+      const fontFace = new FontFace(font.family, `url(${fontPath})`);
+
+      try {
+        const loadedFont = await fontFace.load();
+        document.fonts.add(loadedFont);
+      } catch (error) {
+        console.error(`Failed to load font ${font.family}:`, error);
+      }
+    }));
   }
 
   // ========== PUBLIC METHODS ========== //
