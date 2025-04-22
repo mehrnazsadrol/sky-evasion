@@ -88,6 +88,7 @@ export class Assets {
       { name: 'first_page_background', url: 'res/start_page_bg.png' },
       { name: 'help_icon', url: 'res/icons/help_icon.png' },
       { name: 'close_icon', url: 'res/icons/close_icon.png' },
+      { name: 'help_background', url: 'res/city-backgrounds/city-1-2.png' },
     ];
 
     for (const asset of assets) {
