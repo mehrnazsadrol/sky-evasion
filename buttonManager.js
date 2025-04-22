@@ -17,21 +17,52 @@ export class ButtonManager {
   }
 
   async loadPage() {
+    this._createText();
     await this._createWallpaperButton();
     await this._createStartButton();
     await this._createCharacterChangeButton();
+    await this._createHelpButton();
   }
 
-  async _createWallpaperButton() {
-    const button = await this.settingButtonManager.createWallpaperButton();
-    this.firstPageContainer.addChild(button);
+  /**
+   * Creates and positions the game title text
+   * @private
+   */
+  _createText() {
+    const textColor = this.assets.getCanvasBackgroundColor();
+    const style = new PIXI.TextStyle({
+      fontFamily: 'ubuntu-medium',
+      fontSize: 55,
+      fontWeight: 'bold',
+      fill: textColor,
+    });
+    const message = new PIXI.Text('SKY EVASION', style);
+    message.anchor.set(0.5);
+    message.x = this.c_width / 2;
+    message.y = this.c_height / 5;
+    this.firstPageContainer.addChild(message);
   }
 
+  /**
+   * Creates the character change button using SettingButtonManager
+   * @private
+   * @async
+   */
   async _createCharacterChangeButton() {
     const button = await this.settingButtonManager.createCharacterChangeButton();
     this.firstPageContainer.addChild(button);
   }
 
+  async _createHelpButton() {
+    const button = await this.settingButtonManager.createHelpButton();
+    this.firstPageContainer.addChild(button);
+  }
+
+  /**
+   * Creates the interactive start game button
+   * @private
+   * @async
+   */
   async _createStartButton() {
     const iconW = 200;
     const iconH = 200;

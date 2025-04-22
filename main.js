@@ -9,6 +9,7 @@ import { SettingButtonManager } from './settingButtonManager.js';
 import { AvatarOptions } from './avatarOptions.js';
 import { BackgroundOptions } from './backgroundOptions.js';
 import {LevelManager} from './levelManager.js';
+import { HelpPage } from './helpPage.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -59,7 +60,9 @@ import {LevelManager} from './levelManager.js';
     canvas_bg_color,
     loadBackgroundOptionsScreen,
     loadAvatarOptionsScreen,
-    assets);
+    loadHelpScreen,
+    assets
+  );
 
   const buttonManager = new ButtonManager(
     c_width,
@@ -140,6 +143,28 @@ import {LevelManager} from './levelManager.js';
 
     app.ticker.start();
     isRestarting = false;
+  }
+
+  async function loadHelpScreen() {
+    const helpContainer = new PIXI.Container();
+    const helpPage = new HelpPage(
+      app,
+      helpContainer,
+      assets,
+      c_width,
+      c_height,
+      closeHelpPage
+    );
+    await helpPage.init();
+    app.stage.addChild(helpContainer);
+    app.renderer.render(app.stage);
+
+    function closeHelpPage() {
+      if (helpContainer) {
+        app.stage.removeChild(helpContainer);
+        app.renderer.render(app.stage);
+      }
+    }
   }
 
   async function loadAvatarOptionsScreen() {
