@@ -414,10 +414,7 @@ export class GameController {
     this.originalSpeed = this.speed;
     this.autoRunStartTime = Date.now();
     this.targetSpeed = this.autoRunSpeed;
-    // this.avatar.setAvatarState('run');
     this.isFirstJump = true;
-
-    // Calculate first jump immediately if needed
     this.calculateNextJump();
   }
 
@@ -439,7 +436,6 @@ export class GameController {
     const avatarWidth = this.avatar.getAvatarWidth();
 
     if (!this.isFirstJump){
-      // Find current and next tile
       let currentTile = null;
       let nextTile = null;
 
@@ -460,11 +456,8 @@ export class GameController {
         const gapWidth = gapEnd - gapStart;
 
         if (gapWidth > 0) {
-          // Calculate when we need to jump to clear the gap
           const distanceToGap = gapStart - (avatarX + avatarWidth / 2);
           const timeToGap = distanceToGap / this.autoRunSpeed;
-
-          // Calculate jump parameters
           const jumpDistance = gapWidth + avatarWidth;
 
           this.nextJumpInfo = {
