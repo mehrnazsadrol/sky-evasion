@@ -56,7 +56,7 @@ export class Assets {
       textures: [],
     }
     
-    this.canvas_bg_color = "#2D336B";
+    this.canvas_bg_color = 0x2D336B;
   }
 
   /**
@@ -267,9 +267,26 @@ export class Assets {
   }
 
   /**
-   * Gets canvas background color
+   * Gets theme text color
    */
-  getCanvasBackgroundColor() {
+  getThemeTextColor() {
     return this.canvas_bg_color;
+  }
+
+  getDropFilterLight() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: 0xFDF1DB,
+    });
+  }
+  getDropFilterDark() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: this.canvas_bg_color,
+    });
   }
 }

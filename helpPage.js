@@ -1,11 +1,21 @@
+/**
+ * HelpPage class - Manages the game play guid screen with scrolling content
+ */
 export class HelpPage {
-  constructor(app, container, assets, c_width, c_height, onClosed) {
+  /**
+   * Creates a HelpPage instance with scrollabe content
+   * @param {PIXI.Container} container - The container to hold help page elements
+   * @param {Assets} assets - Game assets manager
+   * @param {number} c_width - Canvas width
+   * @param {number} c_height - Canvas height
+   * @param {function} onClosed - Callback when help page is closed
+   */
+  constructor(container, assets, c_width, c_height, onClosed) {
     this.container = container;
     this.assets = assets;
     this.c_width = c_width;
     this.c_height = c_height;
     this.onClosed = onClosed;
-    this.app = app;
 
     this.scrollContainer = null;
     this.contentContainer = null;
@@ -14,40 +24,45 @@ export class HelpPage {
     this.scrollbarThumb = null;
     this.scrollbarTrack = null;
     this.scrollParams = null;
-    this.textPadding = 20;
 
-    this.scrollWidth = this.c_width - this.c_width * 0.1;  // 80% of screen width
-    this.scrollX = this.c_width * 0.05; // 10% margin
+    this.textPadding = 20;
+    this.scrollWidth = this.c_width - this.c_width * 0.1;
+    this.scrollX = this.c_width * 0.05;
 
   }
 
+  /**
+   * Initializes the help page with background, content, and close button
+   */
   async init() {
     await this._setupBackgroung();
     await this._setupPageContent();
     await this._addCloseButton();
   }
 
+  /**
+   * Sets up the help page background with proper scaling and masking
+   */
   async _setupBackgroung() {
     const bg = this.assets.getTexture('help_background');
     const bg_sprite = new PIXI.Sprite(bg);
-
+    
+    // Calculates scaling to fit background to canvas
+    let scale, offsetX = 0, offsetY = 0;
     const targetWidth = this.c_width;
     const targetHeight = this.c_height;
     const textureRatio = bg.width / bg.height;
     const targetRatio = targetWidth / targetHeight;
 
-    let scale, offsetX = 0, offsetY = 0;
-
     if (textureRatio > targetRatio) {
-      // Texture is wider - fit to height
       scale = targetHeight / bg.height;
       offsetX = (bg.width * scale - targetWidth) / 2;
     } else {
-      // Texture is taller - fit to width
       scale = targetWidth / bg.width;
       offsetY = (bg.height * scale - targetHeight) / 2;
     }
 
+    // Create a mask to ensure background stays within canvas bounds
     bg_sprite.width = bg.width * scale;
     bg_sprite.height = bg.height * scale;
 
@@ -57,18 +72,19 @@ export class HelpPage {
     mask.endFill();
     this.container.addChild(mask);
     bg_sprite.mask = mask;
-
-
+    //centralize the background with the offset
     bg_sprite.x = -offsetX;
     bg_sprite.y = -offsetY;
 
     this.container.addChild(bg_sprite);
-
   }
 
+  /**
+   * Sets up the main content container with scrollable text
+   */
   async _setupPageContent() {
-
     this.contentContainer = new PIXI.Container();
+    // Create semi-transparent background for text content
     const bg = new PIXI.Graphics();
     bg.beginFill(0xFDF1DB, 0.6);
     bg.drawRect(this.scrollX, 0, this.scrollWidth, this.c_height);
@@ -76,45 +92,45 @@ export class HelpPage {
     this.contentContainer.addChild(bg);
     this.container.addChild(this.contentContainer);
 
+    //text containe to hold the text
     this.textContainer = new PIXI.Container();
     await this._addTextToContainer();
     const contentHeight = this._calculateContentHeight();
 
+    //scroll container with mask
     this.scrollContainer = new PIXI.Container();
     this.scrollContainer.addChild(this.textContainer);
     this.scrollContainer.height = contentHeight;
 
     const scrollMask = new PIXI.Graphics();
     scrollMask.beginFill(0xFFFFFF, 0);
-    scrollMask.drawRect(this.scrollX, 100, this.scrollWidth, this.c_height - 200); // 100px top/bottom margin
+    scrollMask.drawRect(this.scrollX, 50, this.scrollWidth, this.c_height);
     scrollMask.endFill();
     this.contentContainer.addChild(scrollMask);
     this.scrollContainer.mask = scrollMask;
-
     this.contentContainer.addChild(this.scrollContainer);
 
     this._createScrollBar(contentHeight);
-
     this._enableScrolling();
-
     this.container.addChild(this.contentContainer);
   }
 
+  /**
+   * Creates a scrollbar for the content
+   * @param {number} contentHeight - Total height of the text content
+   */
   _createScrollBar(contentHeight) {
     const scrollbarWidth = 10;
     const scrollbarX = this.scrollX + this.scrollWidth - scrollbarWidth;
     const scrollbarHeight = this.c_height - 100;
 
-    // Scrollbar track
     this.scrollbarTrack = new PIXI.Graphics();
     this.scrollbarTrack.beginFill(0xCCCCCC, 0);
     this.scrollbarTrack.drawRect(scrollbarX, 100, scrollbarWidth, scrollbarHeight);
     this.scrollbarTrack.endFill();
     this.contentContainer.addChild(this.scrollbarTrack);
 
-    // Scrollbar thumb
     const thumbHeight = Math.max(30, scrollbarHeight * (scrollbarHeight / contentHeight));
-    console.log('thumbHeight', thumbHeight);
     this.scrollbarThumb = new PIXI.Graphics();
     this.scrollbarThumb.beginFill(0x888888);
     this.scrollbarThumb.drawRect(scrollbarX, 100, scrollbarWidth, thumbHeight);
@@ -122,8 +138,7 @@ export class HelpPage {
     this.scrollbarThumb.interactive = true;
     this.scrollbarThumb.buttonMode = true;
     this.contentContainer.addChild(this.scrollbarThumb);
-
-    // Store scroll parameters
+    // scroll parameters for calculations
     this.scrollParams = {
       contentHeight: contentHeight,
       scrollHeight: scrollbarHeight,
@@ -134,6 +149,9 @@ export class HelpPage {
     };
   }
 
+  /**
+   * Enables scrolling via mouse wheel, drag, and click on scrollbar
+   */
   _enableScrolling() {
     let lastY = 0;
     this.container.interactive = true;
@@ -185,6 +203,10 @@ export class HelpPage {
     });
   }
 
+  /**
+   * Scrolls the content by a specified amount
+   * @param {number} deltaY - Vertical scroll amount
+   */
   _scrollContent(deltaY) {
     const newThumbY = this.scrollbarThumb.y + (deltaY / this.scrollParams.scrollRatio);
 
@@ -198,6 +220,10 @@ export class HelpPage {
     this.scrollContainer.y = 100 - (scrollPercent * (this.scrollParams.contentHeight - (this.c_height - 200)));
   }
 
+  /**
+   * Calculates the total height of the content
+   * @returns {number} Total height of all content elements
+   */
   _calculateContentHeight() {
     let maxY = 0;
     this.textContainer.children.forEach(child => {
@@ -206,6 +232,15 @@ export class HelpPage {
     return maxY + 100;
   }
 
+  /**
+   * Creates a text element with specified style and position
+   * @param {string} text - The text to display
+   * @param {object} style - PIXI.Text style options
+   * @param {number} x - x position
+   * @param {number} y - y position
+   * @param {object} anchor - Text anchor point
+   * @returns {PIXI.Text} The created text element
+   */
   _createTextElement(text, style, x = 0, y = 0, anchor = { x: 0, y: 0 }) {
     const textElement = new PIXI.Text(text, style);
     textElement.x = x;
@@ -215,6 +250,9 @@ export class HelpPage {
     return textElement;
   }
 
+  /**
+   * Adds all help text content to the container with proper formatting
+   */
   async _addTextToContainer() {
     const titleStyle = {
       fontFamily: 'ubuntu-medium',
@@ -249,26 +287,22 @@ export class HelpPage {
       wordWrapWidth: this.scrollWidth - 40
     };
 
-    // Define consistent spacing values
     const titleBottomMargin = 40;
     const headerBottomMargin = 15;
     const subHeaderBottomMargin = 10;
-    const paragraphBottomMargin = 25;
     const bulletListBottomMargin = 10;
     const sectionBottomMargin = 25;
 
-    // Add title (centered)
     const title = this._createTextElement(
-      'Sky Evasion (Game Guide)',
+      'Sky Evasion Game play Guide',
       titleStyle,
       (this.scrollWidth) / 2,
-      0,
+      titleBottomMargin,
       { x: 0.5, y: 0 }
     );
 
     let currentY = title.y + title.height + titleBottomMargin;
 
-    // Game Objective section
     const gameObjectiveHeader = this._createTextElement(
       'Game Objective',
       headerStyle,
@@ -296,7 +330,6 @@ export class HelpPage {
     );
     currentY += controlsHeader.height + headerBottomMargin;
 
-    // Movement subsection
     const movementHeader = this._createTextElement(
       'Movement',
       subHeaderStyle,
@@ -314,7 +347,6 @@ export class HelpPage {
     );
     currentY += movementText.height + bulletListBottomMargin;
 
-    // Jumping subsection
     const jumpingHeader = this._createTextElement(
       'Jumping',
       subHeaderStyle,
@@ -325,7 +357,7 @@ export class HelpPage {
 
     const jumpingText = this._createTextElement(
       '• Jump: Press ↑ (Up Arrow) or W to jump.\n' +
-      '• Jumps only move you upward—you must hold →/D to keep moving forward!\n' +
+      '• Jumps only move you upward. You must hold →/D to keep moving forward!\n' +
       '• Double Jump: Press ↑/W again mid-air for an extra boost.',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
@@ -333,7 +365,6 @@ export class HelpPage {
     );
     currentY += jumpingText.height + sectionBottomMargin;
 
-    // Key Mechanics section
     const mechanicsHeader = this._createTextElement(
       'Key Mechanics',
       headerStyle,
@@ -342,7 +373,6 @@ export class HelpPage {
     );
     currentY += mechanicsHeader.height + headerBottomMargin;
 
-    // No Backwards Movement
     const noBackwardsHeader = this._createTextElement(
       'No Backwards Movement',
       subHeaderStyle,
@@ -352,14 +382,13 @@ export class HelpPage {
     currentY += noBackwardsHeader.height + subHeaderBottomMargin;
 
     const noBackwardsText = this._createTextElement(
-      'The city collapses behind you—keep moving right or fall!',
+      'The city collapses behind you. Keep moving right or fall!',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
     currentY += noBackwardsText.height + subHeaderBottomMargin;
 
-    // Jumping ≠ Forward Movement
     const jumpNotForwardHeader = this._createTextElement(
       'Jumping ≠ Forward Movement',
       subHeaderStyle,
@@ -377,7 +406,6 @@ export class HelpPage {
     );
     currentY += jumpNotForwardText.height + subHeaderBottomMargin;
 
-    // Speed Matters
     const speedHeader = this._createTextElement(
       'Speed Matters',
       subHeaderStyle,
@@ -440,7 +468,7 @@ export class HelpPage {
 
     const scoringText = this._createTextElement(
       '• Distance: Earn points for every rooftop you cross.\n' +
-      '• Slimes Jumped: Bonus points for each slime you clear.',
+      '• Slimes Jumped: Bonus points for each slime you stay clear.',
       bodyStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
@@ -458,7 +486,7 @@ export class HelpPage {
 
   async _addCloseButton() {
     const closeButton = new PIXI.Sprite(this.assets.getTexture('close_icon'));
-    closeButton.anchor.set(1,0);
+    closeButton.anchor.set(1, 0.5);
     closeButton.x = this.c_width - this.scrollX;
     closeButton.y = 50;
     closeButton.width = 50;

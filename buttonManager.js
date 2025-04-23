@@ -22,13 +22,10 @@ export class ButtonManager {
     this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
+    this.startButton = null;
+    this.textColor = this.assets.getThemeTextColor();
 
-    this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
-      distance: 5,
-      blur: 4,
-      alpha: 0.6,
-      color: 0xfffade,
-    });
+    this.dropShadowFilter = this.assets.getDropFilterDark();
   }
 
   /**
@@ -46,12 +43,11 @@ export class ButtonManager {
    * @private
    */
   _createText() {
-    const textColor = this.assets.getCanvasBackgroundColor();
     const style = new PIXI.TextStyle({
       fontFamily: 'ubuntu-medium',
       fontSize: 55,
       fontWeight: 'bold',
-      fill: textColor,
+      fill: this.textColor,
     });
     const message = new PIXI.Text('SKY EVASION', style);
     message.anchor.set(0.5);
@@ -66,12 +62,12 @@ export class ButtonManager {
    * @async
    */
   async _createCharacterChangeButton() {
-    const button = await this.settingButtonManager.createCharacterChangeButton();
+    const button = await this.settingButtonManager.createCharacterChangeButton(this.dropShadowFilter);
     this.firstPageContainer.addChild(button);
   }
 
   async _createHelpButton() {
-    const button = await this.settingButtonManager.createHelpButton();
+    const button = await this.settingButtonManager.createHelpButton(this.dropShadowFilter);
     this.firstPageContainer.addChild(button);
   }
 
@@ -125,6 +121,30 @@ export class ButtonManager {
       this.startGame();
     });
 
+    this.startButton = rect;
     this.firstPageContainer.addChild(rect);
   }
+  /**
+   * Disables the start button
+   */
+  disableStartButton() {
+    if (this.startButton) {
+      this.startButton.interactive = false;
+      this.startButton.buttonMode = false;
+      this.startButton.alpha = 0.5;
+      this.startButton.filters = [];
+    }
+  }
+
+  /**
+   * Enables the start button
+   */
+  enableStartButton() {
+    if (this.startButton) {
+      this.startButton.interactive = true;
+      this.startButton.buttonMode = true;
+      this.startButton.alpha = 1;
+    }
+  }
+
 }
