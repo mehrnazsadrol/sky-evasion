@@ -1,4 +1,20 @@
+/**
+ * @file LevelManager.js
+ * @description Manages game level progression, tile generation, slime and gem distribution.
+ *    Handles difficulty scaling based on current level and generates appropriate level layouts.
+ * 
+ * 
+ * Called By: GameController
+ * Calls: None
+ */
 export class LevelManager {
+  /**
+   * @constructor
+   * @description Initializes the LevelManager
+   * @param {Object} assets - Game assets reference
+   * @param {number} totalFamesPerSecond - App ticker frame rate
+   * @param {number} c_width - Canvas width for dimension-based calculations
+   */
   constructor(assets, totalFamesPerSecond, c_width) {
     this.assets = assets;
     this.totalFamesPerSecond = totalFamesPerSecond;
@@ -6,37 +22,47 @@ export class LevelManager {
 
     this.currentLevel = 10;
     this.maxLevel = 12;
+    
     this.jumpDuration = 500;
     this.maxWalkSpeed = 5;
     this.maxRunSpeed = 15;
-    // 60=FPS, 0.5x60x5 = 150
+    
+    // Calculate jump distances based on speed and frame rate
     this.xJumpDistanceW = this.jumpDuration / 1000 * this.totalFamesPerSecond * this.maxWalkSpeed;
-    // 60=FPS, 0.5x60x15 = 450
     this.xJumpDistanceR = this.jumpDuration / 1000 * this.totalFamesPerSecond * this.maxRunSpeed;
-    // 150x0.5 = 75
+    
+    // Tile spacing parameters (based on jump distances)
     this.minTileSpace = this.xJumpDistanceW * 0.5;
-    // 450x0.9 = 405
     this.maxTileSpace = this.xJumpDistanceR * 0.9;
 
+    // Tile size parameters (based on canvas width)
     this.minRoadTileWidth = c_width * 0.4;
     this.maxRoadTileWidth = c_width * 1.5;
 
-    this.totalTileLengthPerLevel = this.c_width * 3;
-
-    this.slimeSequence = []; // holds the slimes info
-    this.tileSequence = []; // holds the width of the tiles. total width is c_width*3
-    this.gemSequence = []; // holds the gems info
-    this.sequencePointer = 0; // the current tile in the sequence
-    this.lastSpace= 0;
+    // Level sequence containers
+    this.slimeSequence = [];  // Array of slime counts per tile [red, green, blue]
+    this.tileSequence = [];   // Array of tile widths
+    this.gemSequence = [];    // Array of gem types between tiles
+    this.sequencePointer = 0; // Current position in sequences
+    this.lastSpace = 0;       // Last generated space between tiles
 
     this.diamondAllocation = this._generateDiamondAllocation();
-
     this._createTileSequence();
     this._createSlimeSequence();
     this._createGemSequence();
     console.log(this.gemSequence);
   }
 
+  /**
+   * @private
+   * @method _createSlimeSequence
+   * @description Generates slime distribution across tiles based on current level
+   *              Implements progressive difficulty:
+   *              - Levels 1-3: Only blue slimes
+   *              - Levels 4-6: Blue and green slimes
+   *              - Levels 7-9: All slime types with increasing difficulty
+   *              - Levels 10-12: Complex slime distributions
+   */
   _createSlimeSequence() {
     this.slimeSequence = new Array(this.tileSequence.length).fill().map(() => [0, 0, 0]);
     const sortedTiles = [...this.tileSequence].sort((a, b) => a - b);
@@ -48,11 +74,11 @@ export class LevelManager {
     const getTilePercentile = (width) => (width - minWidth) / widthRange;
 
     if (this.currentLevel <= 3) {
-      // Level 1-3: Each tile has at least 1 blue slime + chance for second
+      // Level 1-3: Each tile has at least 1 blue slime + chance for second blue
       for (let i = 0; i < this.tileSequence.length; i++) {
-        this.slimeSequence[i][2] = 1; // At least one blue
+        this.slimeSequence[i][2] = 1;
         if (Math.random() < 0.1 * this.currentLevel) {
-          this.slimeSequence[i][2]++; // Additional blue
+          this.slimeSequence[i][2]++;
         }
       }
     }
@@ -60,13 +86,13 @@ export class LevelManager {
       // Level 4-6: Total 12 blue slimes + green slime chances
       let blueSlimesRemaining = 12;
 
-      // First pass: distribute minimum blue slimes
+      // First pass: distributes minimum blue slimes
       for (let i = 0; i < this.tileSequence.length && blueSlimesRemaining > 0; i++) {
         this.slimeSequence[i][2]++;
         blueSlimesRemaining--;
       }
 
-      // Second pass: add remaining blue slimes randomly
+      // Second pass: adds remaining blue slimes randomly
       while (blueSlimesRemaining > 0) {
         const randomTile = Math.floor(Math.random() * this.tileSequence.length);
         this.slimeSequence[randomTile][2]++;
@@ -81,7 +107,7 @@ export class LevelManager {
       }
     }
     else if (this.currentLevel <= 9) {
-      const blueSlimesTotal = 12 + (this.currentLevel - 6) * 2; // Scale blue slimes with level
+      const blueSlimesTotal = 12 + (this.currentLevel - 6) * 2;
       let blueSlimesRemaining = blueSlimesTotal;
 
       // Sort tiles by width for percentile-based placement
@@ -90,7 +116,7 @@ export class LevelManager {
 
       // assign minimum one blue slime per tile
       for (const { idx } of tilesWithIndices) {
-        this.slimeSequence[idx][2] = 1; // At least one blue
+        this.slimeSequence[idx][2] = 1;
         blueSlimesRemaining--;
       }
 
@@ -98,26 +124,19 @@ export class LevelManager {
       for (const { width, idx } of tilesWithIndices) {
         const percentile = getTilePercentile(width);
 
-        // (30-65% range)
+        // 30-65% width range
         if (percentile > 0.3) {
           //add an additional blue slime
-          if (blueSlimesRemaining > 0 && Math.random() < 0.2 * (this.currentLevel - 6)) {
+          if (blueSlimesRemaining > 0 && Math.random() < 0.5) {
             this.slimeSequence[idx][2]++;
             blueSlimesRemaining--;
           }
-
-          this.slimeSequence[idx][1] = 1; // At least one green
+          const slimeType = Math.random() < 0.5 ? 0 : 1;
+          this.slimeSequence[idx][slimeType] = 1;
 
         } else if (percentile >= 0.65) {
-          // Chance for second green
-          if (Math.random() < 0.2 * (this.currentLevel - 6)) {
-            this.slimeSequence[idx][1]++;
-          }
-
-          // Red slimes (65-100% range)
-          if (Math.random() < 0.4 * (this.currentLevel - 6)) {
-            this.slimeSequence[idx][0] = 1;
-          }
+          if (Math.random() < 0.6) this.slimeSequence[idx][1] += 1;
+          if (Math.random() < 0.6) this.slimeSequence[idx][0] += 1;
         }
       }
     }
@@ -143,7 +162,6 @@ export class LevelManager {
           this.slimeSequence[idx][2] = 1;
           this.slimeSequence[idx][1] = Math.floor(Math.random() * 2) + 1;
           this.slimeSequence[idx][0] = 1;
-
         }
         else {
           // 70-100%: multiple slimes allowed
@@ -151,14 +169,23 @@ export class LevelManager {
           const GreenRedCount = this.currentLevel - 9;
 
           this.slimeSequence[idx][2] = Math.floor(Math.random() * blueCount) + 2;
-          this.slimeSequence[idx][1] = Math.floor(Math.random() * GreenRedCount) + 2;
+          this.slimeSequence[idx][1] = Math.floor(Math.random() * GreenRedCount) + 1;
           this.slimeSequence[idx][0] = Math.floor(Math.random() * GreenRedCount) + 1;
-
         }
       }
     }
   }
 
+  /**
+   * @private
+   * @method _createTileSequence
+   * @description Generates a sequence of tile widths based on current level
+   *              Implements progressive difficulty:
+   *              - Levels 1-3: Fewer, larger tiles
+   *              - Levels 4-6: More tiles, some with smaller size
+   *              - Levels 7-9: More tiles with greater variation
+   *              - Levels 10-12: More tiles with 100% range
+   */
   _createTileSequence() {
     this.tileSequence = [];
     const widthRange = this.maxRoadTileWidth - this.minRoadTileWidth;
@@ -216,6 +243,7 @@ export class LevelManager {
       ];
     }
 
+    // Generate tiles based on selected groups
     for (let i = 0; i < tileCount; i++) {
       const group = this._selectWeightedGroup(tileGroups);
       const widthFactor = group.min + Math.random() * (group.max - group.min);
@@ -225,7 +253,13 @@ export class LevelManager {
     this._balanceTotalWidth();
   }
 
-
+  /**
+   * @private
+   * @method _selectWeightedGroup
+   * @description Selects a tile group based on weighted probabilities
+   * @param {Array} groups - Array of tile group definitions with weights
+   * @returns {Object} Selected tile group
+   */
   _selectWeightedGroup(groups) {
     const totalWeight = groups.reduce((sum, g) => sum + g.weight, 0);
     let random = Math.random() * totalWeight;
@@ -237,18 +271,27 @@ export class LevelManager {
     return groups[0];
   }
 
-  // Adjust widths to fill ≈(6 + currentLevel)x screen width
+  /**
+   * @private
+   * @method _balanceTotalWidth
+   * @description Adjusts tile widths to maintain consistent total level width
+   *              based on current level
+   */
   _balanceTotalWidth() {
     const targetWidth = this.c_width * (6 + this.currentLevel);
     const currentWidth = this.tileSequence.reduce((sum, w) => sum + w, 0);
 
     const ratio = targetWidth / currentWidth;
-
     this.tileSequence = this.tileSequence.map(w => Math.floor(w * ratio));
   }
 
+  /**
+   * @private
+   * @method _getTileSpace
+   * @description Calculates space between tiles based on current level
+   * @returns {number} Space between tiles in pixels
+   */
   _getTileSpace() {
-
     // Level 1-3: walking jump distance (75 + random(150-75))
     if (this.currentLevel <= 3)
       return Math.floor(Math.random() * (this.xJumpDistanceW - this.minTileSpace)) + this.minTileSpace;
@@ -260,7 +303,13 @@ export class LevelManager {
       return Math.floor(Math.random() * (this.maxTileSpace - this.xJumpDistanceW)) + this.xJumpDistanceW;
   }
 
-
+  /**
+   * @private
+   * @method _randomAllocation
+   * @description Randomly allocates diamonds across difficulty levels
+   * @param {number} maxAllowed - Maximum number of items to allocate
+   * @returns {Array} Allocation array [easy, medium, hard]
+   */
   _randomAllocation(maxAllowed) {
     let remaining = maxAllowed;
     let allocation = [0, 0, 0];
@@ -274,6 +323,12 @@ export class LevelManager {
     return allocation;
   }
 
+  /**
+   * @private
+   * @method _generateDiamondAllocation
+   * @description Generates diamond distribution across all levels
+   * @returns {Array} Diamond allocation per level
+   */
   _generateDiamondAllocation() {
     // Level 1-3: No diamonds
     let allocation = [0,0,0];
@@ -291,6 +346,12 @@ export class LevelManager {
     return allocation;
   }
 
+  /**
+   * @private
+   * @method _createGemSequence
+   * @description Generates sequence of gems between tiles based on current level
+   *              Includes diamonds and hearts with level-appropriate distribution
+   */
   _createGemSequence() {
     this.gemSequence = [];
     let gems = [];
@@ -312,7 +373,13 @@ export class LevelManager {
     this.gemSequence = gems;
   }
 
-
+  /**
+   * @private
+   * @method _shuffleArray
+   * @description Fisher-Yates shuffle algorithm for randomizing arrays
+   * @param {Array} arr - Array to shuffle
+   * @returns {Array} Shuffled array
+   */
   _shuffleArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -321,19 +388,33 @@ export class LevelManager {
     return arr;
   }
 
+  /**
+   * @method getIsSlimeMoving
+   * @description Determines if slimes should move based on current level
+   * @returns {boolean} True if slimes should move, false otherwise
+   */
   getIsSlimeMoving() {
-    switch (this.currentLevel) {
-      case this.currentLevel <= 6 && this.currentLevel > 3:
-        return Math.random() < 0.5;
-      case this.currentLevel <= 9:
-        return Math.random() < 0.4;
-      case this.currentLevel > 9:
-        return true;
-      default:
-        return false;
-    }
+
+    if (this.currentLevel <= 6 && this.currentLevel > 3)
+      return Math.random() < 0.5;
+    else if (this.currentLevel <= 9)
+      return Math.random() < 0.4;
+    else if (this.currentLevel <= 12)
+      return true;
+    else 
+      return false;
   }
 
+  /**
+   * @method getTileInfo
+   * @description Gets information about the current tile and advances sequence pointer
+   * @returns {Object} Tile information including:
+   *                   - tileWidth: width of current tile
+   *                   - slimeInfo: slime distribution on tile
+   *                   - tileSpace: space after tile
+   *                   - gemType: gem after tile (if any)
+   *                   - isLastTile: flag for last tile in sequence to trigger regeneration
+   */
   getTileInfo() {
     const tileWidth = this.tileSequence[this.sequencePointer];
     const slimeInfo = this.slimeSequence[this.sequencePointer];
@@ -358,25 +439,55 @@ export class LevelManager {
     };
   }
 
+  /**
+   * @method levelUp
+   * @description Advances to the next level and regenerates level sequences
+   */
   levelUp() {
     this.currentLevel++;
   }
 
+  /**
+   * @method getLevel
+   * @description Gets current level
+   * @returns {number} Current level (1-12)
+   */
   getLevel() {
     return this.currentLevel;
   }
 
+  /**
+   * @method getJumpDuration
+   * @description Gets base jump duration in ms
+   * @returns {number} Jump duration in milliseconds
+   */
   getJumpDuration() {
     return this.jumpDuration;
   }
 
+  /**
+   * @method getMaxWalkSpeed
+   * @description Gets maximum walking speed
+   * @returns {number} Pixels per frame
+   */
   getMaxWalkSpeed() {
     return this.maxWalkSpeed;
   }
+
+  /**
+   * @method getMaxRunSpeed
+   * @description Gets maximum running speed
+   * @returns {number} Pixels per frame
+   */
   getMaxRunSpeed() {
     return this.maxRunSpeed;
   }
 
+  /**
+   * @method getLastTileSpace
+   * @description Gets last generated space between tiles
+   * @returns {number} Space in pixels
+   */
   getLastTileSpace() {
     return this.lastSpace;
   }

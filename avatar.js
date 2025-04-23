@@ -1,3 +1,6 @@
+/**
+ * Avatar - Manages the game character's animations and state in the game.
+ */
 export class Avatar {
   constructor(assets) {
     this.assets = assets;
@@ -86,6 +89,10 @@ export class Avatar {
     this.activeAnimation.play();
   }
 
+  /**
+   * Changes the avatar's animation state
+   * @param {string} state - New state
+   */
   setAvatarState(state) {
     if (!this.animations[state]) {
       console.warn(`Animation "${state}" not found.`);
@@ -103,26 +110,44 @@ export class Avatar {
     return this.animations.idle.height;
   }
 
+  /**
+   * Gets the standard width of the avatar animation
+   */
   getAvatarWidth() {
     return this.animations.idle.width;
   }
 
+  /**
+   * Gets current x coordinate
+   */
   getAvatarX() {
     return this.activeAnimation.x;
   }
 
+  /**
+   * Gets current y coordinate
+   */
   getAvatarY() {
     return this.activeAnimation.y;
   }
 
+  /**
+   * Sets x coordinate
+   */
   setAvatarX(x) {
     this.activeAnimation.x = x;
   }
 
+  /**
+   * Sets y coordinate
+   */
   setAvatarY(y) {
     this.activeAnimation.y = y;
   }
 
+  /**
+   * Gets current animation state
+   */
   getAvatarState() {
     return this.state;
   }

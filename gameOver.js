@@ -7,6 +7,7 @@
  * @param {function} restartGame - Callback to restart the game
  * @param {HUD} hud - Heads-up display controller for score data
  * @param {Assets} assets - Asset manager for textures and colors
+ * @param {function} exitGameOver - Callback to exit the game over screen
  */
 export class GameOver {
   constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets, exitGameOver) {
@@ -31,6 +32,9 @@ export class GameOver {
     await this._loadLogOutButton();
   }
 
+  /**
+   * creates the logout button
+   */
   async _loadLogOutButton() {
     const size = 50;
 
@@ -50,6 +54,9 @@ export class GameOver {
     this.container.addChild(icon);
   }
 
+  /**
+   * Creates the game over text
+   */
   _loadText() {
     const textColor = this.assets.getBackgroundTextColor();
     const style = new PIXI.TextStyle({
