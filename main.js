@@ -145,10 +145,13 @@ import { HelpPage } from './helpPage.js';
     isRestarting = false;
   }
 
+  /**
+   * Loads game help screen
+   */
   async function loadHelpScreen() {
+    buttonManager.disableStartButton(); 
     const helpContainer = new PIXI.Container();
     const helpPage = new HelpPage(
-      app,
       helpContainer,
       assets,
       c_width,
@@ -162,12 +165,14 @@ import { HelpPage } from './helpPage.js';
     function closeHelpPage() {
       if (helpContainer) {
         app.stage.removeChild(helpContainer);
+        buttonManager.enableStartButton();
         app.renderer.render(app.stage);
       }
     }
   }
 
   async function loadAvatarOptionsScreen() {
+    buttonManager.disableStartButton();
     const optionsContainer = new PIXI.Container();
     const avatarOptions = new AvatarOptions(
       optionsContainer,
@@ -186,6 +191,7 @@ import { HelpPage } from './helpPage.js';
       localStorage.setItem('avatarIndex', avatarIdx);
       if (optionsContainer) {
         app.stage.removeChild(optionsContainer);
+        buttonManager.enableStartButton();
         app.renderer.render(app.stage);
       }
     }

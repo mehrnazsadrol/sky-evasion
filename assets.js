@@ -78,6 +78,8 @@ export class Assets {
         animationSpeed: 0.3,
       }
     }
+    
+    this.canvas_bg_color = 0x2D336B;
   }
 
   async loadAssets() {
@@ -298,6 +300,23 @@ export class Assets {
 
   getGemAnimationSpeed(type) {
     return this.gems[type].animationSpeed;
+  }
+
+  getDropFilterLight() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: 0xFDF1DB,
+    });
+  }
+  getDropFilterDark() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: this.canvas_bg_color,
+    });
   }
 
   getAdjustedGemWidth(type) {

@@ -15,12 +15,6 @@ export class SettingButtonManager {
     this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
     this.loadHelpScreen = loadHelpScreen;
     this.OptionsContainer = null;
-    this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
-      distance: 5,
-      blur: 4,
-      alpha: 0.6,
-      color: 0xfffade,
-    });
   }
 
   async createWallpaperButton() {
@@ -60,7 +54,7 @@ export class SettingButtonManager {
     return button;
   }
 
-  async createCharacterChangeButton() {
+  async createCharacterChangeButton(dropShadowFilter) {
     const iconW = 80;
     const iconH = 80;
 
@@ -83,7 +77,7 @@ export class SettingButtonManager {
     button.y = 25;
 
     button.on("pointerover", () => {
-      button.filters = [this.dropShadowFilter];
+      button.filters = [dropShadowFilter];
     });
 
     button.on("pointerout", () => {
@@ -97,7 +91,12 @@ export class SettingButtonManager {
     return button;
   }
 
-  async createHelpButton() {
+  /**
+   * Creates and configures the help page button
+   * @async
+   * @returns {PIXI.Graphics} Interactive button
+   */
+  async createHelpButton(dropShadowFilter) {
     const iconW = 80;
     const iconH = 80;
 
@@ -119,7 +118,7 @@ export class SettingButtonManager {
     button.y = 25;
 
     button.on("pointerover", () => {
-      button.filters = [this.dropShadowFilter];
+      button.filters = [dropShadowFilter];
     });
 
     button.on("pointerout", () => {
@@ -127,7 +126,6 @@ export class SettingButtonManager {
     });
 
     button.on("click", async () => {
-      console.log("Help button clicked");
       this.loadHelpScreen();
     });
 

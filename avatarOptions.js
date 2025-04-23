@@ -4,10 +4,10 @@ export class AvatarOptions {
     this.assets = assets;
     this.c_width = c_width;
     this.c_height = c_height;
-    this.canvas_bg_color = canvas_bg_color;
     this.avatarSprites = [];
     this.avatarRects = [];
     this.onAvatarSelected = onAvatarSelected;
+    this.textColor = this.assets.getThemeTextColor();
   }
 
   async init() {
@@ -17,42 +17,71 @@ export class AvatarOptions {
   }
 
   _setupBackground() {
-    const bgRect = new PIXI.Graphics();
-    bgRect.beginFill(parseInt(this.canvas_bg_color));
-    bgRect.drawRect(0, 0, this.c_width, this.c_height);
-    bgRect.endFill();
-    this.container.addChild(bgRect);
+    const bg = this.assets.getTexture('help_background');
+    const bg_sprite = new PIXI.Sprite(bg);
+
+    const targetWidth = this.c_width;
+    const targetHeight = this.c_height;
+    const textureRatio = bg.width / bg.height;
+    const targetRatio = targetWidth / targetHeight;
+
+    let scale, offsetX = 0, offsetY = 0;
+
+    if (textureRatio > targetRatio) {
+      scale = targetHeight / bg.height;
+      offsetX = (bg.width * scale - targetWidth) / 2;
+    } else {
+      scale = targetWidth / bg.width;
+      offsetY = (bg.height * scale - targetHeight) / 2;
+    }
+
+    bg_sprite.width = bg.width * scale;
+    bg_sprite.height = bg.height * scale;
+
+    const mask = new PIXI.Graphics();
+    mask.beginFill(0xFFFFFF);
+    mask.drawRect(0, 0, targetWidth, targetHeight);
+    mask.endFill();
+    this.container.addChild(mask);
+    bg_sprite.mask = mask;
+
+
+    bg_sprite.x = -offsetX;
+    bg_sprite.y = -offsetY;
+
+    this.container.addChild(bg_sprite);
+
+    const rect = new PIXI.Graphics();
+    rect.beginFill(0xFDF1DB, 0.5);
+    rect.drawRect(this.c_width * 0.1, this.c_height * 0.1 , this.c_width * 0.8, this.c_height * 0.8);
+    rect.endFill();
+    this.container.addChild(rect);
+
   }
 
   _setupText() {
     const textStyle = new PIXI.TextStyle({
       fontFamily: "ubuntu-medium",
       fontSize: 40,
-      fill: 0xffffff,
+      fill: this.textColor,
       align: "center",
     });
     const text = new PIXI.Text("CHOOSE YOUR AVATAR", textStyle);
-    text.x = (this.c_width - text.width) / 2;
-    text.y = 20;
+    text.anchor.set(0.5, 0);
+    text.x = this.c_width * 0.5;
+    text.y = 70;
     this.container.addChild(text);
-    this.startY = text.height + 10;
+    this.startY = text.height + text.y;
   }
 
   async _setupAvatarOptions() {
-
-    const dropShadowFilter = new PIXI.filters.DropShadowFilter({
-      distance: 5,
-      blur: 4,
-      alpha: 0.6,
-      color: 0xfff2db,
-    });
-
+    const dropShadowFilter =this.assets.getDropFilterDark();
     const avatarContainer = new PIXI.Container();
     const containerWidth = this.c_width / 2;
     const containerHeight = this.c_height * (2 / 3);
 
     avatarContainer.x = (this.c_width - containerWidth) / 2;
-    avatarContainer.y = (this.c_height - this.startY - containerHeight) / 2 + this.startY;
+    avatarContainer.y = (this.c_height ) / 6;
 
     const avatar_sprite_h = containerHeight / 2;
 

@@ -15,6 +15,8 @@ export class GameOver {
     this.restartGame = restartGame;
     this.hud = hud;
     this.assets = assets;
+
+    this.dropShadowFilter = this.assets.getDropFilterLight();
     const textColor = this.assets.getBackgroundTextColor();
 
     this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
@@ -37,8 +39,11 @@ export class GameOver {
     const wallpaperButton = await this.settingButtonManager.createWallpaperButton();
     this.container.addChild(wallpaperButton);
 
-    const characterButton = await this.settingButtonManager.createCharacterChangeButton();
+    const characterButton = await this.settingButtonManager.createCharacterChangeButton(this.dropShadowFilter);
     this.container.addChild(characterButton);
+
+    const helpButton = await this.settingButtonManager.createHelpButton(this.dropShadowFilter);
+    this.container.addChild(helpButton);
   }
 
   _loadText() {
