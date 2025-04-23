@@ -43,10 +43,15 @@ export class ButtonManager {
   }
 
   /**
-   * Creates the character change button using SettingButtonManager
+   * Creates the setting buttons using SettingButtonManager
    * @private
    * @async
    */
+  async _createWallpaperButton() {
+    const button = await this.settingButtonManager.createWallpaperButton();
+    this.firstPageContainer.addChild(button);
+  }
+
   async _createCharacterChangeButton() {
     const button = await this.settingButtonManager.createCharacterChangeButton();
     this.firstPageContainer.addChild(button);

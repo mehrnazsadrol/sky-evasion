@@ -282,12 +282,18 @@ export class Assets {
     return this.cityBackgrounds[currentBackgroundIndex + 1].scoreColor;
   }
 
+  getThemeTextColor() {
+    return this.canvas_bg_color;
+  }
+
   getDropFilterLight() {
+    const currentBackgroundIndex = Number(localStorage.getItem('cityIndex')) || 0;
+    const textColor =  this.cityBackgrounds[currentBackgroundIndex + 1].gameOverText;
     return new PIXI.filters.DropShadowFilter({
       distance: 8,
       blur: 4,
       alpha: 1,
-      color: 0xFDF1DB,
+      color: textColor,
     });
   }
 
@@ -303,13 +309,12 @@ export class Assets {
     return this.gems[type].animationSpeed;
   }
 
-  getDropFilterLight() {
-    return new PIXI.filters.DropShadowFilter({
-      distance: 8,
-      blur: 4,
-      alpha: 1,
-      color: 0xFDF1DB,
-    });
+  getAdjustedGemWidth(type) {
+    return this.gems[type].textures[0].width * this.gems[type].scale;
+  }
+
+  getAdjustedGemHeight(type) {
+    return this.gems[type].textures[0].height * this.gems[type].scale;
   }
 
   /**
@@ -323,13 +328,5 @@ export class Assets {
       alpha: 1,
       color: this.canvas_bg_color,
     });
-  }
-
-  getAdjustedGemWidth(type) {
-    return this.gems[type].textures[0].width * this.gems[type].scale;
-  }
-
-  getAdjustedGemHeight(type) {
-    return this.gems[type].textures[0].height * this.gems[type].scale;
   }
 }

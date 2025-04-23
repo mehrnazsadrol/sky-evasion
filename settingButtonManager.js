@@ -14,6 +14,7 @@ export class SettingButtonManager {
     this.loadBackgroundOptionsScreen = loadBackgroundOptionsScreen;
     this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
     this.loadHelpScreen = loadHelpScreen;
+    this.assets = assets;
     this.OptionsContainer = null;
     this.dropShadowFilter = this.assets.getDropFilterDark();
   }
@@ -55,7 +56,7 @@ export class SettingButtonManager {
     return button;
   }
 
-  async createCharacterChangeButton(dropShadowFilter) {
+  async createCharacterChangeButton() {
     const iconW = 80;
     const iconH = 80;
 
