@@ -2,7 +2,6 @@
  * GameOver - Handles the game over screen and functionality.
  * 
  * @param {PIXI.Container} gameOverContainer - Container for game over UI elements
- * @param {SettingButtonManager} settingButtonManager - Manages character change button
  * @param {number} c_width - Canvas width
  * @param {number} c_height - Canvas height
  * @param {function} restartGame - Callback to restart the game
@@ -10,17 +9,15 @@
  * @param {Assets} assets - Asset manager for textures and colors
  */
 export class GameOver {
-  constructor(gameOverContainer, settingButtonManager, c_width, c_height, restartGame, hud, assets) {
+  constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets, exitGameOver) {
 
     this.container = gameOverContainer;
-    this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
     this.restartGame = restartGame;
     this.hud = hud;
     this.assets = assets;
-
-    this.dropShadowFilter = this.assets.getDropFilterLight();
+    this.loadStartPage = exitGameOver;
   }
 
   /**
@@ -30,21 +27,27 @@ export class GameOver {
   async init() {
     this._loadText();
     this._loadScore();
-    this._loadButtons();
-    await this._loadSettingButtons();
+    this._loadRestartButton();
+    await this._loadLogOutButton();
   }
 
-  /**
-   * Loads the character change button from SettingButtonManager
-   * @private
-   * @async
-   */
-  async _loadSettingButtons() {
-    const characterButton = await this.settingButtonManager.createCharacterChangeButton(this.dropShadowFilter);
-    this.container.addChild(characterButton);
+  async _loadLogOutButton() {
+    const size = 50;
 
-    const helpButton = await this.settingButtonManager.createHelpButton(this.dropShadowFilter);
-    this.container.addChild(helpButton);
+    const icon = new PIXI.Sprite(this.assets.getTexture('exit_icon'));
+    icon.anchor.set(1, 0.5);
+    icon.x = this.c_width - size;
+    icon.y = size;
+    icon.width = size;
+    icon.height = size;
+    icon.interactive = true;
+    icon.buttonMode = true;
+
+    icon.on('pointerdown', () => {
+      this.loadStartPage();
+    });
+
+    this.container.addChild(icon);
   }
 
   /**
@@ -68,10 +71,10 @@ export class GameOver {
   }
 
   /**
-   * Creates the interactive restart button with hover effects
+   * Creates the interactive restart button
    * @private
    */
-  _loadButtons() {
+  _loadRestartButton() {
     const iconW = 200;
     const iconH = 200;
 
@@ -102,14 +105,6 @@ export class GameOver {
 
     rect.x = (this.c_width - iconW) / 2;
     rect.y = (this.c_height - iconH) * 4 / 5;
-
-    rect.on("pointerover", () => {
-      rect.filters = [this.dropShadowFilter];
-    });
-
-    rect.on("pointerout", () => {
-      rect.filters = [];
-    });
 
     rect.on("click", async () => {
       await this.restartGame();

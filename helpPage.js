@@ -132,7 +132,7 @@ export class HelpPage {
 
     const thumbHeight = Math.max(30, scrollbarHeight * (scrollbarHeight / contentHeight));
     this.scrollbarThumb = new PIXI.Graphics();
-    this.scrollbarThumb.beginFill(0x888888);
+    this.scrollbarThumb.beginFill(0x0C0950, 0.7);
     this.scrollbarThumb.drawRect(scrollbarX, 100, scrollbarWidth, thumbHeight);
     this.scrollbarThumb.endFill();
     this.scrollbarThumb.interactive = true;
@@ -254,11 +254,12 @@ export class HelpPage {
    * Adds all help text content to the container with proper formatting
    */
   async _addTextToContainer() {
+    const textColor = this.assets.getThemeTextColor();
     const titleStyle = {
       fontFamily: 'ubuntu-medium',
       fontSize: 40,
       fontWeight: 'bold',
-      fill: 0x000000,
+      fill: 0x0C0950,
       align: 'center'
     };
 
@@ -266,7 +267,7 @@ export class HelpPage {
       fontFamily: 'ubuntu-medium',
       fontSize: 28,
       fontWeight: 'bold',
-      fill: 0x000000,
+      fill: 0x0C0950,
       align: 'left'
     };
 
@@ -274,14 +275,14 @@ export class HelpPage {
       fontFamily: 'ubuntu-medium',
       fontSize: 22,
       fontWeight: 'bold',
-      fill: 0x000000,
+      fill: textColor,
       align: 'left'
     };
 
     const bodyStyle = {
       fontFamily: 'ubuntu-medium',
       fontSize: 16,
-      fill: 0x000000,
+      fill: textColor,
       align: 'left',
       wordWrap: true,
       wordWrapWidth: this.scrollWidth - 40
@@ -313,7 +314,7 @@ export class HelpPage {
 
     const gameObjectiveText = this._createTextElement(
       'Escape the alien slime invasion by running across rooftops! ' +
-      'You can\'t go backward—forward is the only way. Survive as ' +
+      'You can\'t go backward—forward is the only way. \n Survive as ' +
       'long as possible while avoiding slimes and gaps.',
       bodyStyle,
       this.scrollX + this.textPadding * 1.5,
@@ -496,6 +497,14 @@ export class HelpPage {
 
     closeButton.on('pointerdown', () => {
       this.onClosed();
+    });
+
+    closeButton.on('pointerover', () => {
+      closeButton.filters = [this.assets.getDropFilterDark()];
+    });
+
+    closeButton.on('pointerout', () => {
+      closeButton.filters = [];
     });
 
     this.container.addChild(closeButton);
