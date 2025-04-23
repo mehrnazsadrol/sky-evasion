@@ -24,6 +24,7 @@ export class HelpPage {
   async init() {
     await this._setupBackgroung();
     await this._setupPageContent();
+    await this._addCloseButton();
   }
 
   async _setupBackgroung() {
@@ -102,7 +103,7 @@ export class HelpPage {
   _createScrollBar(contentHeight) {
     const scrollbarWidth = 10;
     const scrollbarX = this.scrollX + this.scrollWidth - scrollbarWidth;
-    const scrollbarHeight = this.c_height - 100; // 100px top margin
+    const scrollbarHeight = this.c_height - 100;
 
     // Scrollbar track
     this.scrollbarTrack = new PIXI.Graphics();
@@ -202,7 +203,7 @@ export class HelpPage {
     this.textContainer.children.forEach(child => {
       maxY = Math.max(maxY, child.y + child.height);
     });
-    return maxY + 100; // Add bottom margin
+    return maxY + 100;
   }
 
   _createTextElement(text, style, x = 0, y = 0, anchor = { x: 0, y: 0 }) {
@@ -245,13 +246,16 @@ export class HelpPage {
       fill: 0x000000,
       align: 'left',
       wordWrap: true,
-      wordWrapWidth: this.scrollWidth - 40 // Account for padding
+      wordWrapWidth: this.scrollWidth - 40
     };
 
-    const headerLineSpacing = 40;
-    const paragraphSpacing = 80;
-    const bodyLineSpacing = 30;
-
+    // Define consistent spacing values
+    const titleBottomMargin = 40;
+    const headerBottomMargin = 15;
+    const subHeaderBottomMargin = 10;
+    const paragraphBottomMargin = 25;
+    const bulletListBottomMargin = 10;
+    const sectionBottomMargin = 25;
 
     // Add title (centered)
     const title = this._createTextElement(
@@ -262,17 +266,18 @@ export class HelpPage {
       { x: 0.5, y: 0 }
     );
 
-    let currentY = title.height + 40;
+    let currentY = title.y + title.height + titleBottomMargin;
 
-    this._createTextElement(
+    // Game Objective section
+    const gameObjectiveHeader = this._createTextElement(
       'Game Objective',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
     );
-    currentY += headerLineSpacing;
+    currentY += gameObjectiveHeader.height + headerBottomMargin;
 
-    this._createTextElement(
+    const gameObjectiveText = this._createTextElement(
       'Escape the alien slime invasion by running across rooftops! ' +
       'You can\'t go backward—forward is the only way. Survive as ' +
       'long as possible while avoiding slimes and gaps.',
@@ -280,44 +285,45 @@ export class HelpPage {
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += paragraphSpacing;
+    currentY += gameObjectiveText.height + sectionBottomMargin;
 
     // Controls section
-    this._createTextElement(
+    const controlsHeader = this._createTextElement(
       'Controls',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
     );
-    currentY += headerLineSpacing;
+    currentY += controlsHeader.height + headerBottomMargin;
 
-
-    this._createTextElement(
+    // Movement subsection
+    const movementHeader = this._createTextElement(
       'Movement',
       subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += movementHeader.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    const movementText = this._createTextElement(
       '• Move Forward: Hold → (Right Arrow) or D to walk.\n' +
       '• Double-tap to sprint (faster but riskier).',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
-    currentY += headerLineSpacing;
+    currentY += movementText.height + bulletListBottomMargin;
 
-    this._createTextElement(
+    // Jumping subsection
+    const jumpingHeader = this._createTextElement(
       'Jumping',
       subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += jumpingHeader.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    const jumpingText = this._createTextElement(
       '• Jump: Press ↑ (Up Arrow) or W to jump.\n' +
       '• Jumps only move you upward—you must hold →/D to keep moving forward!\n' +
       '• Double Jump: Press ↑/W again mid-air for an extra boost.',
@@ -325,81 +331,145 @@ export class HelpPage {
       this.scrollX + this.textPadding * 2,
       currentY
     );
-    currentY += paragraphSpacing;
+    currentY += jumpingText.height + sectionBottomMargin;
 
     // Key Mechanics section
-    this._createTextElement(
+    const mechanicsHeader = this._createTextElement(
       'Key Mechanics',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
     );
-    currentY += headerLineSpacing;
+    currentY += mechanicsHeader.height + headerBottomMargin;
 
-    this._createTextElement(
+    // No Backwards Movement
+    const noBackwardsHeader = this._createTextElement(
       'No Backwards Movement',
       subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += noBackwardsHeader.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    const noBackwardsText = this._createTextElement(
       'The city collapses behind you—keep moving right or fall!',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += noBackwardsText.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    // Jumping ≠ Forward Movement
+    const jumpNotForwardHeader = this._createTextElement(
       'Jumping ≠ Forward Movement',
       subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += jumpNotForwardHeader.height + subHeaderBottomMargin;
 
-    this._createTextElement(
-      'Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps.',
+    const jumpNotForwardText = this._createTextElement(
+      'Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps. Why this matters?\n' +
+      ' If you stop holding →/D, you\'ll halt mid-air during a jump—likely falling into a gap! ',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += jumpNotForwardText.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    // Speed Matters
+    const speedHeader = this._createTextElement(
       'Speed Matters',
       subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += speedHeader.height + subHeaderBottomMargin;
 
-    this._createTextElement(
+    const speedText = this._createTextElement(
       '• Walk (slow): Easier to time jumps.\n' +
       '• Run (fast): Covers ground quicker but shortens reaction time.',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
-    currentY += headerLineSpacing;
+    currentY += speedText.height + sectionBottomMargin;
+    const obstaclesHeader = this._createTextElement(
+      'Obstacles',
+      headerStyle,
+      this.scrollX + this.textPadding,
+      currentY
+    );
+    currentY += obstaclesHeader.height + headerBottomMargin;
 
-    // Final note
-    this._createTextElement(
-      'Why This Matters',
-      subHeaderStyle,
+    const obstaclesText = this._createTextElement(
+      '• Slimes: Touch them, and it\'s game over! Jump over them to earn bonus points.\n' +
+      '• Gaps: Fall between buildings, and your run ends. Time your jumps carefully!',
+      bodyStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += bodyLineSpacing;
+    currentY += obstaclesText.height + sectionBottomMargin;
 
-    this._createTextElement(
-      'If you stop holding →/D, you\'ll halt mid-air during a jump—likely falling into a gap!' +
-      'Always keep moving to survive longer.',
-      bodyStyle,
-      this.scrollX + this.textPadding * 2,
+    const difficultyHeader = this._createTextElement(
+      'Difficulty',
+      headerStyle,
+      this.scrollX + this.textPadding,
       currentY
     );
+    currentY += difficultyHeader.height + headerBottomMargin;
+
+    const difficultyText = this._createTextElement(
+      'The game gets harder the longer you survive:\n' +
+      '• Slimes spawn more frequently.\n' +
+      '• Gaps between rooftops become wider.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += difficultyText.height + sectionBottomMargin;
+
+
+    const scoringHeader = this._createTextElement(
+      'Scoring',
+      headerStyle,
+      this.scrollX + this.textPadding,
+      currentY
+    );
+    currentY += scoringHeader.height + headerBottomMargin;
+
+    const scoringText = this._createTextElement(
+      '• Distance: Earn points for every rooftop you cross.\n' +
+      '• Slimes Jumped: Bonus points for each slime you clear.',
+      bodyStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += scoringText.height + sectionBottomMargin;
+
+    const finalMessage = this._createTextElement(
+      'Good luck, and have fun!',
+      headerStyle,
+      (this.scrollWidth) / 2,
+      currentY,
+      { x: 0.5, y: 0 }
+    );
+  }
+
+  async _addCloseButton() {
+    const closeButton = new PIXI.Sprite(this.assets.getTexture('close_icon'));
+    closeButton.anchor.set(1,0);
+    closeButton.x = this.c_width - this.scrollX;
+    closeButton.y = 50;
+    closeButton.width = 50;
+    closeButton.height = 50;
+    closeButton.interactive = true;
+    closeButton.buttonMode = true;
+
+    closeButton.on('pointerdown', () => {
+      this.onClosed();
+    });
+
+    this.container.addChild(closeButton);
   }
 }
