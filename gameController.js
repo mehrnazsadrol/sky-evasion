@@ -266,8 +266,9 @@ export class GameController {
 
     if (!this.isJumping && !this.autoRun) {
       this._checkFellDown();
-      this._checkSlimeCollision();
     }
+    this._checkSlimeCollision();
+
 
     if (currentTile && currentTile.id > this.lastTilePassed) {
       const tilesPassed = currentTile.id - this.lastTilePassed;
@@ -362,10 +363,10 @@ export class GameController {
             avatarY + avatarHeight > slimeY - slimeHeight * 0.5 &&
             avatarY < slimeY;
 
-          if (this.isJumping || this.isDoubleJumping) {
+          if (this.isJumping || this.isDoubleJumping || this.autoRun) {
             // Only check if we're jumping over (avatar must be above slime)
-            if (!slime.jumpedOver && xCollision &&
-              avatarY + avatarHeight < slimeY - slimeHeight * 0.5) {
+            if (!slime.jumpedOver && ((xCollision &&
+              avatarY + avatarHeight < slimeY - slimeHeight * 0.5) || this.autoRun)) {
               slime.jumpedOver = true;
               this.hud.addScore(50);
             }
