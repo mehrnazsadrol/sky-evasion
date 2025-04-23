@@ -13,6 +13,7 @@ export class ButtonManager {
     this.c_height = c_height;
     this.startButton = null;
     this.textColor = this.assets.getThemeTextColor();
+    this.dropShadowFilter = this.assets.getDropFilterLight();
   }
 
   async loadPage() {
