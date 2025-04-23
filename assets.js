@@ -274,6 +274,15 @@ export class Assets {
     return this.canvas_bg_color;
   }
 
+  getDropFilterLight() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: 0xFDF1DB,
+    });
+  }
+
   /**
    * 
    * @returns {PIXI.filters.DropShadowFilter} - Navy shadow filter
