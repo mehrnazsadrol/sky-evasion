@@ -1,49 +1,53 @@
+/**
+ * GameOver - Handles the game over screen and functionality.
+ * 
+ * @param {PIXI.Container} gameOverContainer - Container for game over UI elements
+ * @param {number} c_width - Canvas width
+ * @param {number} c_height - Canvas height
+ * @param {function} restartGame - Callback to restart the game
+ * @param {HUD} hud - Heads-up display controller for score data
+ * @param {Assets} assets - Asset manager for textures and colors
+ */
 export class GameOver {
-  constructor(
-    gameOverContainer,
-    settingButtonManager,
-    c_width,
-    c_height,
-    restartGame,
-    hud,
-    assets) {
+  constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets, exitGameOver) {
 
     this.container = gameOverContainer;
-    this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
     this.restartGame = restartGame;
     this.hud = hud;
     this.assets = assets;
-
-    this.dropShadowFilter = this.assets.getDropFilterLight();
-    const textColor = this.assets.getBackgroundTextColor();
-
-    this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
-      distance: 5,
-      blur: 4,
-      alpha: 0.6,
-      color: textColor, 
-    });
-
+    this.loadStartPage = exitGameOver;
   }
 
+  /**
+   * Initializes game over screen elements
+   * @async
+   */
   async init() {
     this._loadText();
     this._loadScore();
-    this._loadButtons();
-    await this._loadSettingButtons();
+    this._loadRestartButton();
+    await this._loadLogOutButton();
   }
 
-  async _loadSettingButtons() {
-    const wallpaperButton = await this.settingButtonManager.createWallpaperButton();
-    this.container.addChild(wallpaperButton);
+  async _loadLogOutButton() {
+    const size = 50;
 
-    const characterButton = await this.settingButtonManager.createCharacterChangeButton(this.dropShadowFilter);
-    this.container.addChild(characterButton);
+    const icon = new PIXI.Sprite(this.assets.getTexture('exit_icon'));
+    icon.anchor.set(1, 0.5);
+    icon.x = this.c_width - size;
+    icon.y = size;
+    icon.width = size;
+    icon.height = size;
+    icon.interactive = true;
+    icon.buttonMode = true;
 
-    const helpButton = await this.settingButtonManager.createHelpButton(this.dropShadowFilter);
-    this.container.addChild(helpButton);
+    icon.on('pointerdown', () => {
+      this.loadStartPage();
+    });
+
+    this.container.addChild(icon);
   }
 
   _loadText() {
@@ -64,7 +68,11 @@ export class GameOver {
     this.container.addChild(message);
   }
 
-  _loadButtons() {
+  /**
+   * Creates the interactive restart button
+   * @private
+   */
+  _loadRestartButton() {
     const iconW = 200;
     const iconH = 200;
 

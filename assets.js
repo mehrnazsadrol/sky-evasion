@@ -91,6 +91,7 @@ export class Assets {
       { name: 'help_icon', url: 'res/icons/help_icon.png' },
       { name: 'close_icon', url: 'res/icons/close_icon.png' },
       { name: 'help_background', url: 'res/city-backgrounds/city-1-2.png' },
+      { name : 'exit_icon', url: 'res/icons/exit_icon.png' },
     ];
 
     for (const asset of assets) {
@@ -302,14 +303,10 @@ export class Assets {
     return this.gems[type].animationSpeed;
   }
 
-  getDropFilterLight() {
-    return new PIXI.filters.DropShadowFilter({
-      distance: 8,
-      blur: 4,
-      alpha: 1,
-      color: 0xFDF1DB,
-    });
-  }
+  /**
+   * 
+   * @returns {PIXI.filters.DropShadowFilter} - Navy shadow filter
+   */
   getDropFilterDark() {
     return new PIXI.filters.DropShadowFilter({
       distance: 8,

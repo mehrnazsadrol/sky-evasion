@@ -29,13 +29,7 @@ import { HelpPage } from './helpPage.js';
   const assets = new Assets();
   await assets.loadAssets();
 
-  const bg_container = new PIXI.Container();
-  const start_bg = assets.getTexture('first_page_background');
-  const bg_sprite = new PIXI.Sprite(start_bg);
-  bg_sprite.width = c_width;
-  bg_sprite.height = c_height;
-  bg_container.addChild(bg_sprite);
-  app.stage.addChild(bg_container);
+  // Hide original canvas container
   canvas_container.style.display = "none";
   app.ticker.autoStart = false;
 
@@ -45,6 +39,8 @@ import { HelpPage } from './helpPage.js';
   app.canvas.style.left = "50%";
   app.canvas.style.transform = "translate(-50%, -50%)";
 
+
+  // Game state variables
   let hud;
   let levelManager;
   let gameOverContainer;
@@ -52,8 +48,7 @@ import { HelpPage } from './helpPage.js';
   let gameController;
   let backgroundManager;
   let avatar;
-
-  const firstPageContainer = new PIXI.Container();
+  let buttonManager;
   let settingButtonManager = new SettingButtonManager(
     c_width,
     c_height,
@@ -64,15 +59,35 @@ import { HelpPage } from './helpPage.js';
     assets
   );
 
-  const buttonManager = new ButtonManager(
-    c_width,
-    c_height,
-    firstPageContainer,
-    settingButtonManager,
-    assets,
-    startGame
-  );
+  async function loadStartPage() {
+    app.stage.removeChildren();
+    // Create and position background container
+    const bg_container = new PIXI.Container();
+    const start_bg = assets.getTexture('first_page_background');
+    const bg_sprite = new PIXI.Sprite(start_bg);
+    bg_sprite.width = c_width;
+    bg_sprite.height = c_height;
+    bg_container.addChild(bg_sprite);
+    app.stage.addChild(bg_container);
 
+    // Create main menu container and UI managers
+    const firstPageContainer = new PIXI.Container();
+    buttonManager = new ButtonManager(
+      c_width,
+      c_height,
+      firstPageContainer,
+      settingButtonManager,
+      assets,
+      startGame
+    );
+
+    buttonManager.loadPage();
+    app.stage.addChild(firstPageContainer);
+  }
+
+  /**
+   * Start the main game
+   */
   async function startGame() {
     app.stage.removeChildren();
     await setupGameController();
@@ -115,17 +130,34 @@ import { HelpPage } from './helpPage.js';
     gameOverContainer = new PIXI.Container();
     const gameOverScreen = new GameOver(
       gameOverContainer,
-      settingButtonManager,
       c_width,
       c_height,
       restartGame,
       hud,
-      assets
+      assets, 
+      exitGameOver
     );
     await gameOverScreen.init();
     app.stage.addChild(gameOverContainer);
     app.renderer.render(app.stage);
   }
+
+  /**
+   * Exits the game over screen and returns to the start page
+   */
+  async function exitGameOver() {
+    app.ticker.stop();
+    if (gameOverContainer) {
+      app.stage.removeChild(gameOverContainer);
+      gameOverContainer = null;
+    }
+
+    app.ticker.remove(updateGameController);
+    await loadStartPage();
+    app.ticker.start();
+  }
+
+  // Flag to prevent multiple restart attempts
   let isRestarting = false;
 
 
@@ -149,7 +181,7 @@ import { HelpPage } from './helpPage.js';
    * Loads game help screen
    */
   async function loadHelpScreen() {
-    buttonManager.disableStartButton(); 
+    buttonManager.disableStartButton();
     const helpContainer = new PIXI.Container();
     const helpPage = new HelpPage(
       helpContainer,
@@ -220,7 +252,5 @@ import { HelpPage } from './helpPage.js';
       }
     }
   }
-
-  buttonManager.loadPage();
-  app.stage.addChild(firstPageContainer);
+  loadStartPage();
 })();

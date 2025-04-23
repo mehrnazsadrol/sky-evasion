@@ -15,6 +15,7 @@ export class SettingButtonManager {
     this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
     this.loadHelpScreen = loadHelpScreen;
     this.OptionsContainer = null;
+    this.dropShadowFilter = this.assets.getDropFilterDark();
   }
 
   async createWallpaperButton() {
@@ -77,7 +78,7 @@ export class SettingButtonManager {
     button.y = 25;
 
     button.on("pointerover", () => {
-      button.filters = [dropShadowFilter];
+      button.filters = [this.dropShadowFilter];
     });
 
     button.on("pointerout", () => {
@@ -96,7 +97,7 @@ export class SettingButtonManager {
    * @async
    * @returns {PIXI.Graphics} Interactive button
    */
-  async createHelpButton(dropShadowFilter) {
+  async createHelpButton() {
     const iconW = 80;
     const iconH = 80;
 
@@ -118,7 +119,7 @@ export class SettingButtonManager {
     button.y = 25;
 
     button.on("pointerover", () => {
-      button.filters = [dropShadowFilter];
+      button.filters = [this.dropShadowFilter];
     });
 
     button.on("pointerout", () => {

@@ -13,8 +13,6 @@ export class ButtonManager {
     this.c_height = c_height;
     this.startButton = null;
     this.textColor = this.assets.getThemeTextColor();
-
-    this.dropShadowFilter = this.assets.getDropFilterDark();
   }
 
   async loadPage() {
@@ -49,12 +47,12 @@ export class ButtonManager {
    * @async
    */
   async _createCharacterChangeButton() {
-    const button = await this.settingButtonManager.createCharacterChangeButton(this.dropShadowFilter);
+    const button = await this.settingButtonManager.createCharacterChangeButton();
     this.firstPageContainer.addChild(button);
   }
 
   async _createHelpButton() {
-    const button = await this.settingButtonManager.createHelpButton(this.dropShadowFilter);
+    const button = await this.settingButtonManager.createHelpButton();
     this.firstPageContainer.addChild(button);
   }
 
