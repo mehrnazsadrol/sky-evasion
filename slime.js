@@ -16,6 +16,7 @@ export class Slime {
     this.animationSpeed = 0.1;
     this.textures = this._getSlimeTextures();
     this.animatedSlime = null;
+    this.jumpedOver = false;
     this._createSlime(container, x, y);
   }
 

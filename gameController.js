@@ -223,8 +223,9 @@ export class GameController {
 
     if (!isFirstTile && Math.random() < this.slimeSpawnChance) {
       const slimeCount = 1 + Math.floor(Math.random() * (1 + Math.floor(this.baseDifficulty / 2)));
+      const slimeWidth = this.assets.getSlimeTextureWidth();
       for (let i = 0; i < slimeCount; i++) {
-        const slimeX = tile.x + Math.random() * (tile.width - this.assets.getSlimeTextureWidth());
+        const slimeX = tile.x + slimeWidth*0.5 +  Math.random() * (tile.width - slimeWidth);
         const slimeY = tile.y;
         if (!tile.slimes) tile.slimes = [];
         tile.slimes.push(new Slime(this.container, slimeX, slimeY, this.assets, 'blue'));
@@ -296,8 +297,8 @@ export class GameController {
 
     if (!this.isJumping) {
       this._checkFellDown();
-      this._checkSlimeCollision();
     }
+    this._checkSlimeCollision();
 
     const currentTile = this.getCurrentTile();
     if (currentTile && currentTile.id > this.lastTilePassed) {
@@ -366,7 +367,7 @@ export class GameController {
       if (tile.slimes) {
         for (const slime of tile.slimes) {
           const slimeX = slime.animatedSlime.x;
-          const slimeWidth = slime.animatedSlime.width;
+          const slimeWidth = slime.getSlimeWidth();
           
           if (this.isJumping || this.isDoubleJumping) {
             if (!slime.jumpedOver &&
