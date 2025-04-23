@@ -11,13 +11,9 @@ export class ButtonManager {
     this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
-
-    this.dropShadowFilter = new PIXI.filters.DropShadowFilter({
-      distance: 5,
-      blur: 4,
-      alpha: 0.6,
-      color: 0xfffade,
-    });
+    this.startButton = null;
+    this.textColor = this.assets.getThemeTextColor();
+    this.dropShadowFilter = this.assets.getDropFilterLight();
   }
 
   async loadPage() {

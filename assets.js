@@ -276,6 +276,15 @@ export class Assets {
     return this.cityBackgrounds[currentBackgroundIndex + 1].scoreColor;
   }
 
+  getDropFilterLight() {
+    return new PIXI.filters.DropShadowFilter({
+      distance: 8,
+      blur: 4,
+      alpha: 1,
+      color: 0xFDF1DB,
+    });
+  }
+
   getGemTextures(type) {
     return this.gems[type].textures;
   }
