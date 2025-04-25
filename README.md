@@ -8,8 +8,6 @@ The city has been invaded by alien slimes! You must escape through the rooftops,
 - [Features](#features)
 - [Installation](#installation)
 - [How to Play](#how-to-play)
-- [Controls](#controls)
-- [Customization](#customization)
 
 ## Features
 
