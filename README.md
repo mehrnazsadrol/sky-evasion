@@ -24,7 +24,7 @@ The city has been invaded by alien slimes! You must escape through the rooftops,
 ### Using http-server
 1. Install http-server (if you don't have it):  
     npm install -g http-server  
-2. Navigate to your project folder and run:
+2. Navigate to your project folder and run:  
     http-server -c false -p 8080  
 3. Open in your browser:
     http://localhost:8080  
