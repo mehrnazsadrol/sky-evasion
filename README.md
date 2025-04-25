@@ -19,22 +19,20 @@ The city has been invaded by alien slimes! You must escape through the rooftops,
 ![Game Screenshot](res/readme-files/gameView.png)
 - ⚡ Smooth running and jumping mechanics
 - 📊 Score tracking with HUD display
+![Game ScreenShot](res/readme-files/gameOverScreen.png)
 
 ## Installation
 
 ### Using http-server
 1. Install http-server (if you don't have it):
-   ```bash
    npm install -g http-server
 Navigate to your project folder and run:
-bash
-http-server -c false -p 8080
+    http-server -c false -p 8080
 Open in your browser:
-http://localhost:8080
+    http://localhost:8080
 
 ### Prerequisites
-- Node.js (v14+)
-- npm/yarn
+- npm
 - Modern web browser
 
 ## 🎮 How to Play
