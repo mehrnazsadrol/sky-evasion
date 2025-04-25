@@ -113,7 +113,6 @@ export class GameController {
     };
 
     window.addEventListener('keydown', (event) => {
-      if (this.autoRun) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = true;
         this.handleMovement(keys, event);
@@ -121,7 +120,6 @@ export class GameController {
     });
 
     window.addEventListener('keyup', (event) => {
-      if (this.autoRun) return;
       if (event.key in keys && !this.isFalling) {
         keys[event.key] = false;
         this.handleMovement(keys, event);
@@ -136,6 +134,7 @@ export class GameController {
    * @param {KeyboardEvent} event - Keyboard event
    */
   handleMovement(keys, event) {
+    if (this.autoRun) return;
     const currentTime = Date.now();
 
     // Right movement handling (walk/run)
@@ -168,11 +167,11 @@ export class GameController {
     if ((keys.ArrowUp || keys.w) && event.type === 'keydown') {
       if (!this.isJumping) {
         this.isJumping = true;
-        this.jumpStartTime = currentTime;
+        this.jumpStartTime = Date.now();
         this.avatar.setAvatarState('jump');
       } else if (!this.isDoubleJumping) {
         this.isDoubleJumping = true;
-        this.jumpStartTime = currentTime;
+        this.jumpStartTime = Date.now();
         this.avatar.setAvatarState('jump');
       }
     }
@@ -293,7 +292,7 @@ export class GameController {
     if (this.autoRun) {
       if (Date.now() - this.autoRunStartTime >= this.autoRunDuration && 
           !this.isJumping &&  
-          (this.avatar.getAvatarX() + this.avatar.getAvatarWidth() < currentTile.x + currentTile.width * 0.67)) {
+          (currentTile && this.avatar.getAvatarX() + this.avatar.getAvatarWidth() < currentTile.x + currentTile.width * 0.67)) {
         this.endAutoRun();
       } else {
         this._handleAutoRunJump();
@@ -312,9 +311,9 @@ export class GameController {
     } else {
       // Smooth acceleration/deceleration
       this.speed += (this.targetSpeed - this.speed) * this.velocity;
-      if (this.isJumping) this._handleJump();
     }
 
+    if (this.isJumping) this._handleJump();
     // Gem collection during jumps
     if (this.isJumping) {
       this._handleGemCollection();
@@ -402,6 +401,8 @@ export class GameController {
     if (prevTile?.isLastTile) {
       this.levelManager.levelUp();
       this.hud.showLevelText(this.levelManager.getLevel());
+      this.hud.addLife(2);
+      this.hud.addScore(300);
       prevTile.isLastTile = false;
     }
 
@@ -423,7 +424,7 @@ export class GameController {
    * @description Handles jump physics and animation
    */
   _handleJump() {
-    console.log('handleJump');
+    if (this.autoRun || this.autoRunEnded) return;
     const currentTime = Date.now();
     const elapsedTime = currentTime - this.jumpStartTime;
     const progress = Math.min(elapsedTime / this.jumpDuration, 1);
@@ -576,12 +577,13 @@ export class GameController {
    * @description Activates the auto-run power-up
    */
   startAutoRun() {
-    console.log('autorun started');
     this.autoRun = true;
     this.originalSpeed = this.speed;
     this.autoRunStartTime = Date.now();
     this.targetSpeed = this.autoRunSpeed;
     this.isFirstJump = true;
+    this.isRightKeyPressed = false;
+    this.lastKeyPressTime = 0;
     this.calculateNextJump();
     this.hud.showAutoRunTimer(this.autoRunDuration);
   }
@@ -596,6 +598,7 @@ export class GameController {
     this.nextJumpInfo = null;
     this.isFirstJump = false;
     this.autoRunEnded = true;
+    this.isDoubleJumping = false;
     this.avatar.setAvatarState('idle');
   }
 
@@ -607,7 +610,7 @@ export class GameController {
     const avatarX = this.avatar.getAvatarX();
     const avatarWidth = this.avatar.getAvatarWidth();
 
-    if (!this.isFirstJump) {
+    if (!this.isFirstJump){
       let currentTile = null;
       let nextTile = null;
 
@@ -641,12 +644,9 @@ export class GameController {
           };
         }
       }
-    } 
-    // First jump (from current position)
-    else {
+    } else {
       let nextTile = null;
 
-      // Find next tile to jump to
       for (let i = 0; i < this.tiles.length-1; i++) {
         const prevTile = this.tiles[i];
         nextTile = this.tiles[i + 1];
@@ -655,16 +655,15 @@ export class GameController {
         }
       }
 
-      // Calculate first jump parameters
       if (nextTile) {
-        const jumpDistance = nextTile.x - avatarX + avatarWidth * 0.5;
+        const jumpDistance = nextTile.x - avatarX;
         const peakHeight = this.c_height - this.avatar.getAvatarY() - this.roadTileHeight - this.avatar.getAvatarHeight();
 
         this.nextJumpInfo = {
           startTime: Date.now(),
           duration: (jumpDistance / this.autoRunSpeed) * (1000 / this.totalFramesInOneSecond),
           startX: avatarX,
-          endX: nextTile.x + avatarWidth * 0.5,
+          endX: nextTile.x,
           peakHeight: peakHeight
         };
       }
@@ -677,32 +676,29 @@ export class GameController {
    * @description Handles jump physics during auto-run
    */
   _handleAutoRunJump() {
-    console.log('handleAutoRunJump');
     const currentTime = Date.now();
 
-    // Initiate jump when scheduled
     if (this.nextJumpInfo && currentTime >= this.nextJumpInfo.startTime && !this.isJumping) {
       this.isJumping = true;
-      this.jumpStartTime = currentTime;
+      // this.jumpStartTime = this.nextJumpInfo.startTime;
       this.avatar.setAvatarState('jump');
     }
 
     if (this.isJumping && this.nextJumpInfo) {
-      const elapsed = currentTime - this.jumpStartTime;
+      const elapsed = currentTime - this.nextJumpInfo.startTime;
       const progress = Math.min(elapsed / this.nextJumpInfo.duration, 1);
 
       let verticalMovement;
       if (!this.isFirstJump) {
+
         verticalMovement = -4 * this.nextJumpInfo.peakHeight * progress * (1 - progress);
-      } 
-      // Linear interpolation for first jump (from current height)
-      else {
+      } else {
         const currentY = this.avatar.getAvatarY();
         const targetY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
         verticalMovement = currentY + (targetY - currentY) * progress - targetY;
       }
-
       const avatarBaseY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
+
       this.avatar.activeAnimation.y = avatarBaseY + verticalMovement;
 
       if (progress >= 1) {

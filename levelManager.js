@@ -20,7 +20,7 @@ export class LevelManager {
     this.totalFamesPerSecond = totalFamesPerSecond;
     this.c_width = c_width;
 
-    this.currentLevel = 10;
+    this.currentLevel = 1;
     this.maxLevel = 12;
     
     this.jumpDuration = 500;
@@ -50,7 +50,6 @@ export class LevelManager {
     this._createTileSequence();
     this._createSlimeSequence();
     this._createGemSequence();
-    console.log(this.gemSequence);
   }
 
   /**
@@ -367,8 +366,7 @@ export class LevelManager {
     }
 
     const totalSpaces = this.tileSequence.length - 1;
-    while (gems.length < totalSpaces/2) gems.push('diamond');
-    while (gems.length < totalSpaces) gems.push('heart');
+    while (gems.length < totalSpaces) gems.push('');
     this._shuffleArray(gems);
     this.gemSequence = gems;
   }

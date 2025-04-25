@@ -4,7 +4,7 @@ export class Hud {
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
-    this.lives = 20;
+    this.lives = 2;
     this.assets = assets;
     this.bannerHeight = 60;
 

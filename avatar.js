@@ -114,7 +114,7 @@ export class Avatar {
    * Gets the standard width of the avatar animation
    */
   getAvatarWidth() {
-    return this.animations.idle.width;
+    return this.animations[this.state].width;
   }
 
   /**
