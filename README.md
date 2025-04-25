@@ -50,7 +50,7 @@ The city has been invaded by alien slimes! You must escape through the rooftops,
 | Action          | Points          |
 |-----------------|-----------------|
 | Every Tile Passed | +10 points    |
-| Every Slime Passed  | +5 bonus    |
+| Every Slime Passed  | +50 bonus    |
 | High score      | Saved locally   |
 
 
