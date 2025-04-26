@@ -8,9 +8,11 @@
  * @param {HUD} hud - Heads-up display controller for score data
  * @param {Assets} assets - Asset manager for textures and colors
  * @param {function} exitGameOver - Callback to exit the game over screen
+ * @param {function} playBtnClickSound - Function to play button click sound
+ * @param {boolean} isGameOVer - Flag to check if the game is over or game is won
  */
 export class GameOver {
-  constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets, exitGameOver) {
+  constructor(gameOverContainer, c_width, c_height, restartGame, hud, assets, exitGameOver, playBtnClickSound, isGameOVer) {
 
     this.container = gameOverContainer;
     this.c_width = c_width;
@@ -19,6 +21,8 @@ export class GameOver {
     this.hud = hud;
     this.assets = assets;
     this.loadStartPage = exitGameOver;
+    this.playBtnClickSound = playBtnClickSound;
+    this.isGameOVer = isGameOVer;
   }
 
   /**
@@ -48,6 +52,7 @@ export class GameOver {
     icon.buttonMode = true;
 
     icon.on('pointerdown', () => {
+      this.playBtnClickSound();
       this.loadStartPage();
     });
 
@@ -68,7 +73,11 @@ export class GameOver {
       dropShadowColor: this.assets.getScoreTextColor(),
       dropShadowDistance: 4
     });
-    const message = new PIXI.Text('Game Over!', style);
+    let message = null;
+    if (!this.isGameOVer)
+      message = new PIXI.Text('You Won!', style);
+    else
+      message = new PIXI.Text('Game Over!', style);
     message.anchor.set(0.5, 1);
     message.x = this.c_width / 2;
     message.y = this.c_height / 3;
@@ -84,8 +93,8 @@ export class GameOver {
     const iconH = 200;
 
     const rect = new PIXI.Graphics()
-    .rect(0, 0, iconW, iconH)
-    .fill({color:0xffffff, alpha:0});
+      .rect(0, 0, iconW, iconH)
+      .fill({ color: 0xffffff, alpha: 0 });
 
     rect.interactive = true;
     rect.buttonMode = true;
@@ -120,6 +129,7 @@ export class GameOver {
     });
 
     rect.on("click", async () => {
+      this.playBtnClickSound();
       await this.restartGame();
     });
 
@@ -158,9 +168,9 @@ export class GameOver {
     );
     highestScoreText.anchor.set(0.5, 0);
     highestScoreText.x = this.c_width / 2;
-    highestScoreText.y = this.c_height/ 3 + currentScoreText.height + 1.5 *highestScoreText.height;
+    highestScoreText.y = this.c_height / 3 + currentScoreText.height + 1.5 * highestScoreText.height;
     this.container.addChild(highestScoreText);
 
-    
+
   }
 }

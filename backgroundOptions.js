@@ -15,8 +15,9 @@ export class BackgroundOptions {
    * @param {number} c_height - Canvas height
    * @param {string} canvas_bg_color - Canvas background color
    * @param {function} onCitySelected - Callback when city is selected
+   * @param {function} playBtnClickSound - Function to play button click sound
    */
-  constructor(container, assets, c_width, c_height, canvas_bg_color, onCitySelected) {
+  constructor(container, assets, c_width, c_height, canvas_bg_color, onCitySelected, playBtnClickSound) {
     this.c_width = c_width;
     this.c_height = c_height;
     this.canvas_bg_color = canvas_bg_color;
@@ -25,6 +26,7 @@ export class BackgroundOptions {
     this.citySprites = [];
     this.cityRects = [];
     this.onCitySelected = onCitySelected;
+    this.playBtnClickSound = playBtnClickSound;
   }
 
   /**
@@ -133,6 +135,7 @@ export class BackgroundOptions {
    * @param {number} cityIndex - Index of selected city
    */
   _onCitySelected(cityIndex) {
+    this.playBtnClickSound();
     if (this.onCitySelected) {
       this.onCitySelected(cityIndex);
     }

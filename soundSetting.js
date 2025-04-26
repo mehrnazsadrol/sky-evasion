@@ -45,7 +45,7 @@ export class SoundSetting {
       music: {
         volBar: null,
         muteButton: null,
-        isMuted: this.soundManager.getMusicEnabled(),
+        isMuted: !this.soundManager.getMusicEnabled(),
         volLvl: this.soundManager.getMusicVolume(),
         volDownButton: null,
         volUpButton: null,
@@ -53,7 +53,7 @@ export class SoundSetting {
       sfx: {
         volBar: null,
         muteButton: null,
-        isMuted: this.soundManager.getSfxEnabled(),
+        isMuted: !this.soundManager.getSfxEnabled(),
         volLvl: this.soundManager.getSfxVolume(),
         volDownButton: null,
         volUpButton: null,
@@ -162,6 +162,7 @@ export class SoundSetting {
 
       }
     );
+    this._updateVolumeButtonsState('music', this.musicConfig.music.isMuted);
   }
 
   /**
@@ -187,6 +188,7 @@ export class SoundSetting {
         this._updateMuteButton(this.musicConfig.sfx.muteButton, this.musicConfig.sfx.isMuted, 'sfx');
       }
     );
+    this._updateVolumeButtonsState('sfx', this.musicConfig.sfx.isMuted);
   }
   /**
    * @private
@@ -262,7 +264,7 @@ export class SoundSetting {
     this.musicConfig[label.toLowerCase()].volUpButton = volUp;
 
     const muteButton = this._createIconButton(
-      currVol > 0 ? 'sound' : 'silent',
+      this.musicConfig[label.toLowerCase()].isMuted ? 'silent':'sound',
       currx,
       yPos + paddingY,
       iconSize,
@@ -373,7 +375,10 @@ export class SoundSetting {
       button.filters = [];
     });
 
-    button.on('click', onClick);
+    button.on('click', () => {
+      this.soundManager.playButtonClick();
+      onClick();
+    });
 
     this.container.addChild(button);
     return button;

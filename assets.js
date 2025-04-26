@@ -163,6 +163,7 @@ export class Assets {
       { name: 'volume_down', url: 'res/icons/volume_down.png' },
       { name: 'sound', url: 'res/icons/sound.png' },
       { name: 'save_icon', url: 'res/icons/save2.png' },
+      { name: 'block', url: 'res/icons/block.png' },
     ];
 
     // Loads all static assets
@@ -194,7 +195,8 @@ export class Assets {
       { name: 'background4', url: 'res/sound/Background4.mp3' },
       { name: 'button_click', url: 'res/sound/button.mp3' },
       { name: 'timer1', url: 'res/sound/countDown1.mp3' },
-      { name: 'timer2', url: 'res/sound/countDown2.mp3' }
+      { name: 'timer2', url: 'res/sound/countDown2.mp3' },
+      { name: 'timer3', url: 'res/sound/countDown3.mp3' },
     ];
 
     const loadPromises = soundDefinitions.map(s => {
@@ -627,5 +629,14 @@ export class Assets {
    */
   getSfxMaxVol() {
     return this.sfxMaxVol;
+  }
+
+  getBlockSprite(){
+    const blockTexture = this.textures.get('block');
+    const blockSprite = new PIXI.Sprite(blockTexture);
+    blockSprite.anchor.set(0.5,1);
+    blockSprite.width = 150;
+    blockSprite.height = 150;
+    return blockSprite;
   }
 }

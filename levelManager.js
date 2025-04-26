@@ -188,12 +188,11 @@ export class LevelManager {
   _createTileSequence() {
     this.tileSequence = [];
     const widthRange = this.maxRoadTileWidth - this.minRoadTileWidth;
-    let tileCount;
+    const tileCount = this.currentLevel * 2 + 10;
     let tileGroups = [];
 
     // Level 1-3: 8 tiles, starting at 70-100% range shrinking by 10% per level
     if (this.currentLevel <= 3) {
-      tileCount = 8;
       const levelShrink = 0.1 * this.currentLevel;
 
       tileGroups = [
@@ -202,7 +201,6 @@ export class LevelManager {
     }
     // Level 4-6: 12 tiles, 49-100% range
     else if (this.currentLevel <= 6) {
-      tileCount = 12;
       const levelShrink = 0.07 * (this.currentLevel - 3);
       const lvlMin = 0.49 - levelShrink;
       const lvlMid = lvlMin + (1 - lvlMin) / 2;
@@ -215,7 +213,6 @@ export class LevelManager {
     }
     // Level 7-9: 16 tiles, 25-100% range 
     else if (this.currentLevel <= 9) {
-      tileCount = 16;
       const levelShrink = 0.08 * (this.currentLevel - 6);
       const lvlMin = 0.49 - levelShrink;
       const range = 1 - lvlMin;
@@ -229,7 +226,6 @@ export class LevelManager {
     }
     // Level 10-12: 20 tiles, 0-100% range
     else {
-      tileCount = 20;
       const levelShrink = 0.083 * (this.currentLevel - 9);
       const lvlMin = 0.25 - levelShrink;
       const range = 1 - lvlMin;
@@ -277,7 +273,7 @@ export class LevelManager {
    *              based on current level
    */
   _balanceTotalWidth() {
-    const targetWidth = this.c_width * (6 + this.currentLevel);
+    const targetWidth = this.c_width * (10 + this.currentLevel);
     const currentWidth = this.tileSequence.reduce((sum, w) => sum + w, 0);
 
     const ratio = targetWidth / currentWidth;
@@ -366,9 +362,16 @@ export class LevelManager {
     }
 
     const totalSpaces = this.tileSequence.length - 1;
-    while (gems.length < totalSpaces) gems.push('');
+    if (this.currentLevel >= this.maxLevel-1)
+      while (gems.length < totalSpaces-4 ) gems.push('diamond');
+    else 
+      while (gems.length < totalSpaces ) gems.push('');
     this._shuffleArray(gems);
+    if (this.currentLevel >= this.maxLevel-1)
+      while (gems.length < totalSpaces ) gems.push('');
+
     this.gemSequence = gems;
+    console.log('Gems:', this.gemSequence);
   }
 
   /**
@@ -488,5 +491,14 @@ export class LevelManager {
    */
   getLastTileSpace() {
     return this.lastSpace;
+  }
+
+  /**
+   * @method getMaxLevel
+   * @description Gets maximum level
+   * @returns {number} Maximum level (12)
+   */
+  getMaxLevel() {
+    return this.maxLevel;
   }
 }

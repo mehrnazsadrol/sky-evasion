@@ -9,13 +9,15 @@ export class HelpPage {
    * @param {number} c_width - Canvas width
    * @param {number} c_height - Canvas height
    * @param {function} onClosed - Callback when help page is closed
+   * @param {function} playBtnClickSound - Function to play button click sound
    */
-  constructor(container, assets, c_width, c_height, onClosed) {
+  constructor(container, assets, c_width, c_height, onClosed, playBtnClickSound) {
     this.container = container;
     this.assets = assets;
     this.c_width = c_width;
     this.c_height = c_height;
     this.onClosed = onClosed;
+    this.playBtnClickSound = playBtnClickSound;
 
     this.scrollContainer = null;
     this.contentContainer = null;
@@ -492,6 +494,7 @@ export class HelpPage {
     closeButton.buttonMode = true;
 
     closeButton.on('pointerdown', () => {
+      this.playBtnClickSound();
       this.onClosed();
     });
 

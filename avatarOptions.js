@@ -14,8 +14,9 @@ export class AvatarOptions {
    * @param {number} c_width - Canvas width
    * @param {number} c_height - Canvas height
    * @param {function} onAvatarSelected - Callback when avatar is selected
+   * @param {function} playBtnClickSound - Function to play button click sound
    */
-  constructor(container, assets, c_width, c_height, onAvatarSelected) {
+  constructor(container, assets, c_width, c_height, onAvatarSelected, playBtnClickSound) {
     this.container = container;
     this.assets = assets;
     this.c_width = c_width;
@@ -23,6 +24,7 @@ export class AvatarOptions {
     this.avatarSprites = [];
     this.avatarRects = [];
     this.onAvatarSelected = onAvatarSelected;
+    this.playBtnClickSound = playBtnClickSound;
     this.textColor = this.assets.getThemeTextColor();
   }
 
@@ -172,6 +174,7 @@ export class AvatarOptions {
    * @param {number} avatarIndex - Index of selected avatar (0 or 1)
    */
   _onAvatarSelected(avatarIndex) {
+    this.playBtnClickSound();
     if (this.onAvatarSelected) {
       this.onAvatarSelected(avatarIndex);
     }

@@ -71,14 +71,14 @@ export class SoundManager {
   * @method playGameMusic
   * @description Plays the in-game music
   */
-    playGameMusic() {
-      if (!this.musicEnabled) return;
-  
-      this.stopMusic();
-      this.currentMusicIndex = 0;
-      this.isPlaying = true;
-      this._playNextGameTrack();
-    }
+  playGameMusic() {
+    if (!this.musicEnabled) return;
+
+    this.stopMusic();
+    this.currentMusicIndex = 0;
+    this.isPlaying = true;
+    this._playNextGameTrack();
+  }
 
   /**
  * @private
@@ -102,7 +102,7 @@ export class SoundManager {
       volume: this.musicVolume * this.assets.getMusicMaxVol(),
       complete: () => {
         this.currentMusicIndex = (this.currentMusicIndex + 1) % gameTracks.length;
-        this.playNextGameTrack();
+        this._playNextGameTrack();
       }
     });
 
@@ -176,8 +176,18 @@ export class SoundManager {
    */
   resumeMusic() {
     if (this.currentMusic && !this.isPlaying) {
-      this.currentMusic.resume();
+      this.currentMusic.paused = false;
       this.isPlaying = true;
+    }
+  }
+  /**
+   * @method pauseMusic
+   * @description Pauses the currently playing music
+   */
+  pauseMusic() {
+    if (this.currentMusic && this.isPlaying) {
+      this.currentMusic.paused = true;
+      this.isPlaying = false;
     }
   }
 
@@ -188,11 +198,12 @@ export class SoundManager {
    */
   setMusicDisable(isMuted) {
     this.musicEnabled = !isMuted;
-    if (isMuted) {
-      this.stopMusic();
-    } else if (!this.isPlaying && this.currentMusic) {
+    if (isMuted && this.isPlaying)
+      this.pauseMusic();
+    else if (!this.isPlaying && this.currentMusic)
       this.resumeMusic();
-    }
+    else
+      this.playMainMusic();
     this.saveSettings();
   }
 

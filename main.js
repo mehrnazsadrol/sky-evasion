@@ -74,7 +74,8 @@ import { SoundSetting } from './soundSetting.js';
     loadAvatarOptionsScreen,
     loadHelpScreen,
     loadSoundSettingScreen,
-    assets
+    assets,
+    () => soundManager.playButtonClick(),
   );
 
   /**
@@ -171,7 +172,7 @@ import { SoundSetting } from './soundSetting.js';
    * @description Initialize game over screen
    * @async
    */
-  async function gameOver() {
+  async function gameOver(isGameOver) {
     app.ticker.stop();
     app.ticker.remove(updateGameController);
     app.stage.removeChild(gameContainer);
@@ -185,7 +186,9 @@ import { SoundSetting } from './soundSetting.js';
       restartGame,
       hud,
       assets,
-      exitGameOver
+      exitGameOver,
+      () => soundManager.playButtonClick(),
+      isGameOver,
     );
     await gameOverScreen.init();
     app.stage.addChild(gameOverContainer);
@@ -246,7 +249,8 @@ import { SoundSetting } from './soundSetting.js';
       assets,
       c_width,
       c_height,
-      closeHelpPage
+      closeHelpPage,
+      () => soundManager.playButtonClick(),
     );
     await helpPage.init();
     app.stage.addChild(helpContainer);
@@ -278,7 +282,8 @@ import { SoundSetting } from './soundSetting.js';
       assets,
       this.c_width,
       this.c_height,
-      changeAvatar
+      changeAvatar,
+      () => soundManager.playButtonClick(),
     );
     await avatarOptions.init();
     app.stage.addChild(optionsContainer);
@@ -314,7 +319,8 @@ import { SoundSetting } from './soundSetting.js';
       this.c_width,
       this.c_height,
       canvas_bg_color,
-      changeCanvasBackground
+      changeCanvasBackground,
+      () => soundManager.playButtonClick(),
     );
     backgroundOptions.init();
     app.stage.addChild(optionsContainer);
@@ -350,7 +356,7 @@ import { SoundSetting } from './soundSetting.js';
         soundManager,
         this.c_width,
         this.c_height,
-        onCloseSetting
+        onCloseSetting,
       );
       await setting.init();
       app.stage.addChild(settingContainer);

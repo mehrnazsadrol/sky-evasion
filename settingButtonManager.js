@@ -17,6 +17,7 @@ export class SettingButtonManager {
    * @param {function} loadHelpScreen - Callback for help screen
    * @param {function} loadSoundSettingScreen - Callback for sound settings
    * @param {Object} assets - Game assets manager
+   * @param {function} playBtnClickSound - Function to play button click sound
    */
   constructor(
     c_width,
@@ -25,7 +26,8 @@ export class SettingButtonManager {
     loadAvatarOptionsScreen,
     loadHelpScreen,
     loadSoundSettingScreen,
-    assets
+    assets,
+    playBtnClickSound
   ) {
     this.c_width = c_width;
     this.c_height = c_height;
@@ -34,6 +36,7 @@ export class SettingButtonManager {
     this.loadHelpScreen = loadHelpScreen;
     this.loadSoundSettingScreen = loadSoundSettingScreen;
     this.assets = assets;
+    this.playBtnClickSound = playBtnClickSound;
     this.OptionsContainer = null;
     this.iconSize = this.c_width / 20;
     this.xPadding = this.iconSize * 0.5;
@@ -78,6 +81,7 @@ export class SettingButtonManager {
 
     // Click handler - loads background options screen
     button.on("click", async () => {
+      this.playBtnClickSound();
       await this.loadBackgroundOptionsScreen();
     });
 
@@ -118,6 +122,7 @@ export class SettingButtonManager {
 
     // Click handler - loads avatar options screen
     button.on("click", async () => {
+      this.playBtnClickSound();
       this.loadAvatarOptionsScreen();
     });
 
@@ -158,6 +163,7 @@ export class SettingButtonManager {
 
     // Click handler - loads sound setting screen
     button.on("click", async () => {
+      this.playBtnClickSound();
       this.loadSoundSettingScreen();
     });
 
@@ -197,6 +203,7 @@ export class SettingButtonManager {
 
     // Click handler - loads help screen
     button.on("click", async () => {
+      this.playBtnClickSound();
       this.loadHelpScreen();
     });
 

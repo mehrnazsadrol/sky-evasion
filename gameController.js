@@ -85,6 +85,10 @@ export class GameController {
     this.nextJumpInfo = null;
     this.isFirstJump = false;
     this.autoRunEnded = false;
+    this.finishTile = null;
+    this.gameEndMove = false;
+    this.finalTileBlock = null;
+    this.finishingGame = false;
 
     const avatarHeight = this.avatar.getAvatarHeight();
     this.avatar.addToStage(
@@ -113,14 +117,14 @@ export class GameController {
     };
 
     window.addEventListener('keydown', (event) => {
-      if (event.key in keys && !this.isFalling) {
+      if (event.key in keys && !this.isFalling && !this.gameEndMove) {
         keys[event.key] = true;
         this.handleMovement(keys, event);
       }
     });
 
     window.addEventListener('keyup', (event) => {
-      if (event.key in keys && !this.isFalling) {
+      if (event.key in keys && !this.isFalling && !this.gameEndMove) {
         keys[event.key] = false;
         this.handleMovement(keys, event);
       }
@@ -245,6 +249,7 @@ export class GameController {
     tile.y = this.c_height - this.roadTileHeight;
     
     if (isLastTile) {
+      console.log('isLastTile', isLastTile);
       tile.isLastTile = isLastTile;
     }
 
@@ -293,11 +298,16 @@ export class GameController {
           !this.isJumping &&  
           (currentTile && this.avatar.getAvatarX() + this.avatar.getAvatarWidth() < currentTile.x + currentTile.width * 0.67)) {
         this.endAutoRun();
+        console.log('Auto-run ended');
       } else {
         this._handleAutoRunJump();
       }
     }
-
+    if (this.finishTile && currentTile?.id === this.finishTile?.id) {
+      this.gameEndMove = true;
+      this.handleFinishTileMovement();
+      return;
+    }
     // Track next gem for collection
     if (currentTile?.gems) {
       this.nextGem = currentTile.gems[0];
@@ -361,6 +371,8 @@ export class GameController {
         for (const gem of tile.gems)
           gem.updateGem(-this.speed);
     }
+    if (this.finalTileBlock)
+      this.finalTileBlock.x -= this.speed;
     this.backgroundManager.updateBackgroundLayers(this.speed);
   }
 
@@ -381,7 +393,7 @@ export class GameController {
       
       if (removedTile.gems) {
         for (const gem of removedTile.gems) {
-          this.container.removeChild(gem.animatedGem);
+          gem.destroy();
         }
       }
       this.container.removeChild(removedTile);
@@ -394,22 +406,32 @@ export class GameController {
    * @description Handles level completion and new tile generation
    */
   _handleLevelProgression() {
+    if (this.finishingGame) return;
     const prevTile = this.tiles[this.tiles.length - 1];
     const lastSpace = this.levelManager.getLastTileSpace();
 
     if (prevTile?.isLastTile) {
-      this.levelManager.levelUp();
-      this.hud.showLevelText(this.levelManager.getLevel());
-      this.hud.updateLife(2);
-      this.hud.addScore(300);
+      const currLvl = this.levelManager.getLevel();
+      if (currLvl + 1 > this.levelManager.getMaxLevel()) {
+        this.finishingGame = true;
+        this.hud.addScore(500);
+      } else {
+        this.levelManager.levelUp();
+        this.hud.showLevelText(currLvl + 1);
+        this.hud.updateLife(4);
+        this.hud.addScore(300);
+      }
       prevTile.isLastTile = false;
     }
 
-    if (prevTile && prevTile.x + prevTile.width < this.totalRoadWidth) {
+    if (prevTile && prevTile.x + prevTile.width < this.totalRoadWidth && !this.finishingGame) {
       const tileInfo = this.levelManager.getTileInfo();
       const currentX = prevTile.x + prevTile.width + lastSpace;
       this.addTile(currentX, tileInfo.tileWidth, tileInfo.slimeInfo, tileInfo.isLastTile);
       this.addGem(currentX + tileInfo.tileWidth, tileInfo.tileSpace, tileInfo.gemType);
+    }
+    if (this.finishingGame) {
+      this.createFinalTileSet(prevTile.x + prevTile.width);
     }
 
     if (this.autoRun && !this.nextJumpInfo) {
@@ -525,7 +547,7 @@ export class GameController {
             const cost = slimeType === 0 ? -2 : -1; // Red slimes hurt more
             const isAlive = this.hud.updateLife(cost);
             if (!isAlive) {
-              this.gameOver();
+              this.gameOver(true);
             }
           }
         }
@@ -541,7 +563,7 @@ export class GameController {
   _handleFall() {
     const avatarY = this.avatar.getAvatarY();
     if (avatarY > this.c_height) {
-      this.gameOver();
+      this.gameOver(true);
     } else {
       this.avatar.setAvatarY(avatarY + this.fallSpeed);
     }
@@ -679,7 +701,6 @@ export class GameController {
 
     if (this.nextJumpInfo && currentTime >= this.nextJumpInfo.startTime && !this.isJumping) {
       this.isJumping = true;
-      // this.jumpStartTime = this.nextJumpInfo.startTime;
       this.avatar.setAvatarState('jump');
     }
 
@@ -710,5 +731,59 @@ export class GameController {
         this.calculateNextJump();
       }
     }
+  }
+
+  /**
+   * @method createFinalTileSet
+   * @description Creates the final tile set for the game victory
+   * @param {int} currentX x position of the last tile
+   */
+  createFinalTileSet(currentX) {
+    if (this.finishTile) return;
+    this.addTile(currentX, this.c_width*7, null, false, false);
+    const blockSprite = this.assets.getBlockSprite();
+    blockSprite.x = currentX + this.c_width*5.75;
+    blockSprite.y = this.c_height - this.roadTileHeight;
+    this.finishTile = this.tiles[this.tiles.length - 1];
+    this.finalTileBlock = blockSprite;
+    this.container.addChild(this.finalTileBlock);
+  }
+
+  /**
+   * @method handleFinishTileMovement
+   * @description Handles the movement of the avatar on the finish tile for victory
+   */
+  handleFinishTileMovement() {
+    this.hud._showWonTheGame();
+    if(this.finishTile && this.finishTile.x + this.finishTile.width > this.c_width*2) {
+      if (this.avatar.getAvatarState() !== 'run') {
+        this.avatar.setAvatarState('run');
+      }
+      this._updateGameElements();
+      return;
+    }
+    console.log(this.finishTile.x + this.finishTile.width);
+    const avatarX = this.avatar.getAvatarX();
+    const jumpStartX = this.finalTileBlock.x - this.finalTileBlock.width * 0.75;
+    const jumpHeight = this.finalTileBlock.height * 1.5;
+    const jumpDistance = this.finalTileBlock.width * 1.5;
+
+    this.avatar.setAvatarX(avatarX + this.speed);
+    if (avatarX >= jumpStartX && avatarX <= jumpDistance + jumpStartX) {
+      if(!this.finishingJump)
+        this.finishingJump = true;
+      const elapsed = avatarX - jumpStartX;
+      const progress = Math.min(elapsed / jumpDistance, 1);
+      const verticalMovement = -4 * jumpHeight * progress * (1 - progress);
+      const avatarBaseY = this.c_height - this.roadTileHeight - this.avatar.getAvatarHeight();
+      this.avatar.activeAnimation.y = avatarBaseY + verticalMovement;
+      if (progress >= 1) {
+        this.finishingJump = false;
+      }
+    }
+    if (avatarX >= this.c_width) {
+      this.gameOver(false);
+    }
+    
   }
 }
