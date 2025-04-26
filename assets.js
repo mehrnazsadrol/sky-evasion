@@ -15,7 +15,7 @@ export class Assets {
   constructor() {
     // Main texture cache
     this.textures = new Map();
-    
+
     /**
      * @property {Object} cityBackgrounds - Configuration for city background themes
      * @property {number} count - Number of background variations per city
@@ -134,7 +134,9 @@ export class Assets {
         animationSpeed: 0.3,
       }
     };
-    
+    this.musicMaxVol =  0.8;
+    this.sfxMaxVol = 0.1;
+
     // Default canvas background color
     this.canvas_bg_color = 0x2D336B;
   }
@@ -154,7 +156,13 @@ export class Assets {
       { name: 'help_icon', url: 'res/icons/help_icon.png' },
       { name: 'close_icon', url: 'res/icons/close_icon.png' },
       { name: 'help_background', url: 'res/city-backgrounds/city-1-2.png' },
-      { name : 'exit_icon', url: 'res/icons/exit_icon.png' },
+      { name: 'exit_icon', url: 'res/icons/exit_icon2.png' },
+      { name: 'sound_settings', url: 'res/icons/sound_setting.png' },
+      { name: 'silent', url: 'res/icons/silent.png' },
+      { name: 'volume_up', url: 'res/icons/volume_up.png' },
+      { name: 'volume_down', url: 'res/icons/volume_down.png' },
+      { name: 'sound', url: 'res/icons/sound.png' },
+      { name: 'save_icon', url: 'res/icons/save2.png' },
     ];
 
     // Loads all static assets
@@ -162,7 +170,7 @@ export class Assets {
       const texture = await PIXI.Assets.load(asset.url);
       this.textures.set(asset.name, texture);
     }
-
+    await this.loadSounds();
     await this.loadCityBackgrounds();
     await this.loadAvatarAssets();
     await this.loadSlimeAssets();
@@ -170,6 +178,50 @@ export class Assets {
     await this.loadAvatarOptions();
     await this.loadFonts();
     await this.loadGems();
+  }
+
+  /**
+   * @async 
+   * @method loadSounds
+   * @description Loads all sound effects and background music
+   */
+  async loadSounds() {
+    const soundDefinitions = [
+      { name: 'main', url: 'res/sound/mainBackground.mp3' },
+      { name: 'background1', url: 'res/sound/Background1.mp3' },
+      { name: 'background2', url: 'res/sound/Background2.mp3' },
+      { name: 'background3', url: 'res/sound/Background3.mp3' },
+      { name: 'background4', url: 'res/sound/Background4.mp3' },
+      { name: 'button_click', url: 'res/sound/button.mp3' },
+      { name: 'timer1', url: 'res/sound/countDown1.mp3' },
+      { name: 'timer2', url: 'res/sound/countDown2.mp3' }
+    ];
+
+    const loadPromises = soundDefinitions.map(s => {
+      return new Promise((resolve, reject) => {
+        PIXI.sound.Sound.from({
+          url: s.url,
+          preload: true,
+          loaded: (err, sound) => {
+            if (err) {
+              console.error(`Error loading sound ${s.name}:`, err);
+              reject(err);
+              return;
+            }
+            PIXI.sound.add(s.name, sound);
+            resolve();
+          }
+        });
+      });
+    });
+
+    try {
+      await Promise.all(loadPromises);
+      return true;
+    } catch (error) {
+      console.error('Some sounds failed to load:', error);
+      return false;
+    }
   }
 
   /**
@@ -548,5 +600,32 @@ export class Assets {
       alpha: 1,
       color: this.canvas_bg_color,
     });
+  }
+
+  /**
+   * @method getGameTracks
+   * @description Gets available music tracks for game background
+   * @returns {Array<string>} Array of music track names for game background
+   */
+  getGameTracks() {
+    return ['background1', 'background2', 'background3', 'background4'];
+  }
+
+  /**
+   * @method getMusicMaxVol
+   * @description Gets maximum volume for music
+   * @returns {number} - Maximum volume for music
+   */
+  getMusicMaxVol() {
+    return this.musicMaxVol;
+  }
+
+  /**
+   * @method getSfxMaxVol
+   * @description Gets maximum volume for sound effects
+   * @returns {number} - Maximum volume for sound effects
+   */
+  getSfxMaxVol() {
+    return this.sfxMaxVol;
   }
 }

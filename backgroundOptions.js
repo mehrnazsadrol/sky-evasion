@@ -44,10 +44,9 @@ export class BackgroundOptions {
    * @description Creates a solid color background for the selection screen
    */
   _setupBackground() {
-    const bgRect = new PIXI.Graphics();
-    bgRect.beginFill(parseInt(this.canvas_bg_color));
-    bgRect.drawRect(0, 0, this.c_width, this.c_height);
-    bgRect.endFill();
+    const bgRect = new PIXI.Graphics()
+      .rect(0, 0, this.c_width, this.c_height)
+      .fill(0xffffff);
     this.container.addChild(bgRect);
   }
 
@@ -58,9 +57,9 @@ export class BackgroundOptions {
    */
   _setupText() {
     const textStyle = new PIXI.TextStyle({
-      fontFamily: "ubuntu-medium",
-      fontSize: 40,
-      fill: 0xffffff,
+      fontFamily: "Monofett",
+      fontSize: 50,
+      fill: 0x0C0950,
       align: "center",
     });
     const text = new PIXI.Text("CHOOSE YOUR BACKGROUND", textStyle);
@@ -77,7 +76,7 @@ export class BackgroundOptions {
    * @description Creates and positions the interactive city background options in a grid layout
    */
   async _setupCityOptions() {
-    const dropShadowFilter = this.assets.getDropFilterLight();
+    const dropShadowFilter = this.assets.getDropFilterDark();
 
     const city_sprite_w = (this.c_width * 2) / 12; // 1/6 of canvas width
     const city_sprite_h = (this.c_height - this.startY) / 3; // 1/3 of remaining height
@@ -94,10 +93,9 @@ export class BackgroundOptions {
         const c = j + i * (num_cities / num_rows);
         const texture = cityTextures[c];
 
-        const rect = new PIXI.Graphics();
-        rect.beginFill(0x000000, 0);
-        rect.drawRect(0, 0, city_sprite_w, city_sprite_h);
-        rect.endFill();
+        const rect = new PIXI.Graphics()
+        .rect(0, 0, city_sprite_w, city_sprite_h)
+        .fill({color:0x000000, alpha:0});
 
         const citySprite = new PIXI.Sprite(texture);
         citySprite.width = city_sprite_w;

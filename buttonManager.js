@@ -25,7 +25,14 @@ export class ButtonManager {
     this.settingButtonManager = settingButtonManager;
     this.c_width = c_width;
     this.c_height = c_height;
-    this.startButton = null;
+    this.firstPageContainer = firstPageContainer; 
+    this.mainButtons = {
+      startButton: null,
+      avatarChangeButton: null,
+      wallpaperChangeButton: null,
+      helpButton: null,
+      soundSettingButton: null,
+    };
     
     this.textColor = this.assets.getThemeTextColor();
     this.dropShadowFilter = this.assets.getDropFilterLight();
@@ -38,10 +45,23 @@ export class ButtonManager {
    */
   async loadPage() {
     this._createText();
-    await this._createWallpaperButton();
     await this._createStartButton();
-    await this._createCharacterChangeButton();
-    await this._createHelpButton();
+    await this._createSettingButtons();
+    Object.values(this.mainButtons).forEach(button => {
+      this.firstPageContainer.addChild(button);
+    });
+  }
+
+  /**
+   * @async
+   * @privateMethod _createSettingButtons
+   * @description Creates all setting buttons using the SettingButtonManager
+   */
+  async _createSettingButtons() {
+    this.mainButtons.wallpaperChangeButton = await this.settingButtonManager.createWallpaperButton();
+    this.mainButtons.avatarChangeButton = await this.settingButtonManager.createCharacterChangeButton();
+    this.mainButtons.helpButton = await this.settingButtonManager.createHelpButton();
+    this.mainButtons.soundSettingButton = await this.settingButtonManager.createSoundSettingButton();
   }
 
   /**
@@ -67,39 +87,6 @@ export class ButtonManager {
   /**
    * @private
    * @async
-   * @method _createWallpaperButton
-   * @description Creates background selection button using SettingButtonManager
-   */
-  async _createWallpaperButton() {
-    const button = await this.settingButtonManager.createWallpaperButton();
-    this.firstPageContainer.addChild(button);
-  }
-
-  /**
-   * @private
-   * @async
-   * @method _createCharacterChangeButton
-   * @description Creates character selection button using SettingButtonManager
-   */
-  async _createCharacterChangeButton() {
-    const button = await this.settingButtonManager.createCharacterChangeButton();
-    this.firstPageContainer.addChild(button);
-  }
-
-  /**
-   * @private
-   * @async
-   * @method _createHelpButton
-   * @description Creates help button using SettingButtonManager
-   */
-  async _createHelpButton() {
-    const button = await this.settingButtonManager.createHelpButton();
-    this.firstPageContainer.addChild(button);
-  }
-
-  /**
-   * @private
-   * @async
    * @method _createStartButton
    * @description Creates the start game button with hover effects
    */
@@ -107,10 +94,9 @@ export class ButtonManager {
     const iconW = 200;
     const iconH = 200;
 
-    const rect = new PIXI.Graphics();
-    rect.beginFill(0xfffade, 0);
-    rect.drawRect(0, 0, iconW, iconH);
-    rect.endFill();
+    const rect = new PIXI.Graphics()
+    .rect(0, 0, iconW, iconH)
+    .fill({color:0xfffade, alpha:0});
 
     rect.interactive = true;
     rect.buttonMode = true;
@@ -147,32 +133,31 @@ export class ButtonManager {
       this.startGame();
     });
 
-    this.startButton = rect;
-    this.firstPageContainer.addChild(rect);
+    this.mainButtons.startButton = rect;
   }
 
   /**
    * @method disableStartButton
-   * @description Disables the start button (e.g., when help page is open)
+   * @description Disables the start page buttons (e.g., when help page is open)
    */
-  disableStartButton() {
-    if (this.startButton) {
-      this.startButton.interactive = false;
-      this.startButton.buttonMode = false;
-      this.startButton.alpha = 0.5;
-      this.startButton.filters = [];
-    }
+  disableMainButtons() {
+    Object.values(this.mainButtons).forEach(button => {
+      button.interactive = false;
+      button.buttonMode = false;
+      button.alpha = 0.5;
+      button.filters = [];
+    });
   }
 
   /**
    * @method enableStartButton
-   * @description Re-enables the start button
+   * @description Re-enables the start page buttons
    */
-  enableStartButton() {
-    if (this.startButton) {
-      this.startButton.interactive = true;
-      this.startButton.buttonMode = true;
-      this.startButton.alpha = 1;
-    }
+  enableMainButtons() {
+    Object.values(this.mainButtons).forEach(button => {
+      button.interactive = true;
+      button.buttonMode = true;
+      button.alpha = 1;
+    });
   }
 }

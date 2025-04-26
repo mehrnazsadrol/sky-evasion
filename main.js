@@ -22,6 +22,8 @@ import { AvatarOptions } from './avatarOptions.js';
 import { BackgroundOptions } from './backgroundOptions.js';
 import { LevelManager } from './levelManager.js';
 import { HelpPage } from './helpPage.js';
+import { SoundManager } from './soundManager.js';
+import { SoundSetting } from './soundSetting.js';
 
 (async () => {
   const canvas_container = document.getElementById("canvas-container");
@@ -63,12 +65,15 @@ import { HelpPage } from './helpPage.js';
   let avatar;
   let buttonManager;
 
+  const soundManager = new SoundManager(assets);
+
   let settingButtonManager = new SettingButtonManager(
     c_width,
     c_height,
     loadBackgroundOptionsScreen,
     loadAvatarOptionsScreen,
     loadHelpScreen,
+    loadSoundSettingScreen,
     assets
   );
 
@@ -79,7 +84,8 @@ import { HelpPage } from './helpPage.js';
    */
   async function loadStartPage() {
     app.stage.removeChildren();
-
+    if (!soundManager.getIsMainPlaying())
+      soundManager.playMainMusic();
     const bg_container = new PIXI.Container();
     const start_bg = assets.getTexture('first_page_background');
     const bg_sprite = new PIXI.Sprite(start_bg);
@@ -89,6 +95,7 @@ import { HelpPage } from './helpPage.js';
     app.stage.addChild(bg_container);
 
     const firstPageContainer = new PIXI.Container();
+    settingButtonManager.resetButtonPosition();
     buttonManager = new ButtonManager(
       c_width,
       c_height,
@@ -128,6 +135,7 @@ import { HelpPage } from './helpPage.js';
   async function setupGameController() {
     backgroundManager = new CityBackgroundManager(c_height, c_width, assets);
     backgroundManager.createBackgroundLayers(app);
+    soundManager.playGameMusic();
 
     // Load avatar animations
     avatar = new Avatar(assets);
@@ -138,7 +146,7 @@ import { HelpPage } from './helpPage.js';
     app.stage.addChild(gameContainer);
 
     // Initialize HUD and level manager
-    hud = new Hud(gameContainer, c_width, c_height, assets);
+    hud = new Hud(gameContainer, c_width, c_height, assets, soundManager);
     levelManager = new LevelManager(assets, (app.ticker.FPS || 60), c_width);
 
     // Create game controller
@@ -167,6 +175,7 @@ import { HelpPage } from './helpPage.js';
     app.ticker.stop();
     app.ticker.remove(updateGameController);
     app.stage.removeChild(gameContainer);
+    soundManager.playMainMusic();
 
     gameOverContainer = new PIXI.Container();
     const gameOverScreen = new GameOver(
@@ -230,7 +239,7 @@ import { HelpPage } from './helpPage.js';
    * @async
    */
   async function loadHelpScreen() {
-    buttonManager.disableStartButton();
+    buttonManager.disableMainButtons();
     const helpContainer = new PIXI.Container();
     const helpPage = new HelpPage(
       helpContainer,
@@ -250,7 +259,7 @@ import { HelpPage } from './helpPage.js';
     function closeHelpPage() {
       if (helpContainer) {
         app.stage.removeChild(helpContainer);
-        buttonManager.enableStartButton();
+        buttonManager.enableMainButtons();
         app.renderer.render(app.stage);
       }
     }
@@ -262,7 +271,7 @@ import { HelpPage } from './helpPage.js';
    * @async
    */
   async function loadAvatarOptionsScreen() {
-    buttonManager.disableStartButton();
+    buttonManager.disableMainButtons();
     const optionsContainer = new PIXI.Container();
     const avatarOptions = new AvatarOptions(
       optionsContainer,
@@ -285,7 +294,7 @@ import { HelpPage } from './helpPage.js';
       localStorage.setItem('avatarIndex', avatarIdx);
       if (optionsContainer) {
         app.stage.removeChild(optionsContainer);
-        buttonManager.enableStartButton();
+        buttonManager.enableMainButtons();
         app.renderer.render(app.stage);
       }
     }
@@ -297,6 +306,7 @@ import { HelpPage } from './helpPage.js';
    * @async
    */
   async function loadBackgroundOptionsScreen() {
+    buttonManager.disableMainButtons();
     const optionsContainer = new PIXI.Container();
     const backgroundOptions = new BackgroundOptions(
       optionsContainer,
@@ -320,10 +330,44 @@ import { HelpPage } from './helpPage.js';
       localStorage.setItem('cityIndex', cityIdx);
       if (optionsContainer) {
         app.stage.removeChild(optionsContainer);
+        buttonManager.enableMainButtons();
         app.renderer.render(app.stage);
       }
     }
   }
+
+    /**
+   * @function loadSoundSettingScreen
+   * @description Loads and displays the sound setting screen
+   * @async
+   */
+    async function loadSoundSettingScreen() {
+      buttonManager.disableMainButtons();
+      const settingContainer = new PIXI.Container();
+      const setting = new SoundSetting(
+        settingContainer,
+        assets,
+        soundManager,
+        this.c_width,
+        this.c_height,
+        onCloseSetting
+      );
+      await setting.init();
+      app.stage.addChild(settingContainer);
+      app.renderer.render(app.stage);
+  
+      /**
+       * @function changeAvatar
+       * @description Handles audio setting page close
+       */
+      function onCloseSetting() {
+        if (settingContainer) {
+          app.stage.removeChild(settingContainer);
+          buttonManager.enableMainButtons();
+          app.renderer.render(app.stage);
+        }
+      }
+    }
 
   // Start the game by loading the start page
   loadStartPage();

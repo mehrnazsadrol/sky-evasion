@@ -64,10 +64,9 @@ export class AvatarOptions {
     bg_sprite.width = bg.width * scale;
     bg_sprite.height = bg.height * scale;
 
-    const mask = new PIXI.Graphics();
-    mask.beginFill(0xFFFFFF);
-    mask.drawRect(0, 0, targetWidth, targetHeight);
-    mask.endFill();
+    const mask = new PIXI.Graphics()
+    .rect(0, 0, targetWidth, targetHeight)
+    .fill({color:0xFFFFFF});
     this.container.addChild(mask);
     bg_sprite.mask = mask;
 
@@ -75,10 +74,9 @@ export class AvatarOptions {
     bg_sprite.y = -offsetY;
     this.container.addChild(bg_sprite);
 
-    const rect = new PIXI.Graphics();
-    rect.beginFill(0xFDF1DB, 0.5);
-    rect.drawRect(this.c_width * 0.1, this.c_height * 0.1, this.c_width * 0.8, this.c_height * 0.8);
-    rect.endFill();
+    const rect = new PIXI.Graphics()
+    .rect(this.c_width * 0.1, this.c_height * 0.1, this.c_width * 0.8, this.c_height * 0.8)
+    .fill({color:0xFDF1DB, alpha:0.5});
     this.container.addChild(rect);
   }
 
@@ -129,10 +127,9 @@ export class AvatarOptions {
       const avatar_sprite_w = avatar_sprite_h * aspectRatio;
       avatarWidths.push(avatar_sprite_w);
 
-      const rect = new PIXI.Graphics();
-      rect.beginFill(0x000000, 0);
-      rect.drawRect(0, 0, avatar_sprite_w, avatar_sprite_h);
-      rect.endFill();
+      const rect = new PIXI.Graphics()
+        .rect(0, 0, avatar_sprite_w, avatar_sprite_h)
+        .fill({color:0x000000, alpha:0});      
 
       const avatar = new PIXI.Sprite(texture);
       avatar.width = avatar_sprite_w;

@@ -1,11 +1,12 @@
 export class Hud {
-  constructor(container, c_width, c_height, assets) {
+  constructor(container, c_width, c_height, assets, soundManager) {
     this.container = container;
     this.c_width = c_width;
     this.c_height = c_height;
     this.score = 0;
     this.lives = 2;
     this.assets = assets;
+    this.soundManager = soundManager;
     this.bannerHeight = 60;
 
     this.highestScore = Number(localStorage.getItem("highestScore")) || 0;
@@ -15,7 +16,7 @@ export class Hud {
     this.animationContainer = new PIXI.Container();
 
     this.scoreText = new PIXI.Text("SCORE: 0", {
-      fontFamily: "RoadRage", 
+      fontFamily: "RoadRage",
       fontSize: 30,
       fill: this.textColor,
       align: "left",
@@ -28,10 +29,9 @@ export class Hud {
   }
 
   _setupHud() {
-    const hudBar = new PIXI.Graphics();
-    hudBar.beginFill(0xFAF1E6, 0.6);
-    hudBar.drawRect(0, 0, this.c_width, this.bannerHeight);
-    hudBar.endFill();
+    const hudBar = new PIXI.Graphics()
+      .rect(0, 0, this.c_width, this.bannerHeight)
+      .fill({ color: 0xFAF1E6, alpha: 0.6 });
 
     this.scoreText.x = 20;
     this.scoreText.y = 15;
@@ -92,7 +92,7 @@ export class Hud {
     this.livesContainer.addChild(this.livesMultiplier);
     this.livesContainer.addChild(this.livesHeart);
 
-    this.livesContainer.x = this.c_width - 20 - this.livesContainer.width ;
+    this.livesContainer.x = this.c_width - 20 - this.livesContainer.width;
     this.livesContainer.y = 15;
 
     this.hudContainer.addChild(this.livesContainer);
@@ -123,10 +123,10 @@ export class Hud {
         }
       });
     }
-    
+
     const totalSeconds = Math.ceil(autoRunDuration / 1000);
     this.currentTimerAnimations = [];
-    
+
     for (let i = 0; i < totalSeconds; i++) {
       const timerText = new PIXI.Text((totalSeconds - i).toString(), {
         fontFamily: "BungeeSpice",
@@ -136,30 +136,30 @@ export class Hud {
         stroke: 0x8B4513,
         strokeThickness: 5
       });
-      
+
       timerText.anchor.set(0.5);
       timerText.x = this.c_width / 2;
       timerText.y = this.bannerHeight / 2;
       timerText.alpha = 0;
       timerText.scale.set(0.1);
-      
+
       this.animationContainer.addChild(timerText);
       this.currentTimerAnimations.push(timerText);
-      
+
       setTimeout(() => {
         this._animateTimerText(timerText, i === totalSeconds - 1);
       }, i * 1000);
     }
   }
-  
+
   _animateTimerText(timerText, isLast) {
     const animationDuration = 1000;
     const startTime = Date.now();
-    
+
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / animationDuration, 1);
-      
+
       if (progress < 0.3) {
         // Grow in
         const growProgress = progress / 0.3;
@@ -172,12 +172,12 @@ export class Hud {
         const shrinkProgress = (progress - 0.7) / 0.3;
         timerText.scale.set(1 - (shrinkProgress * 0.9));
         timerText.alpha = 1 - shrinkProgress;
-        
+
         if (isLast && progress > 0.9) {
           timerText.text = "GO!";
         }
       }
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
@@ -187,7 +187,7 @@ export class Hud {
         this.currentTimerAnimations = this.currentTimerAnimations.filter(t => t !== timerText);
       }
     };
-    
+
     animate();
   }
 
@@ -198,7 +198,7 @@ export class Hud {
 
     const levelText = new PIXI.Text(`LEVEL ${level}`, {
       fontFamily: "BungeeSpice",
-      fontSize: 30, 
+      fontSize: 30,
       align: "center",
       stroke: 0x000000,
       strokeThickness: 5,
@@ -206,7 +206,7 @@ export class Hud {
 
     levelText.anchor.set(0.5);
     levelText.x = this.c_width / 2;
-    levelText.y = this.bannerHeight / 2 ;
+    levelText.y = this.bannerHeight / 2;
     levelText.alpha = 0;
     levelText.scale.set(0.1);
 
@@ -245,7 +245,7 @@ export class Hud {
   }
 
   _showFloatingText(text, color, x, y, fontSize = 36) {
-    let fontFamily = "RoadRage"; 
+    let fontFamily = "RoadRage";
     if (text.startsWith("+")) fontFamily = "Chewy";
     if (text.startsWith("LEVEL")) fontFamily = "Nabla";
 
@@ -262,13 +262,13 @@ export class Hud {
     floatingText.x = x;
     floatingText.y = y;
     floatingText.alpha = 1;
-    
+
     this.animationContainer.addChild(floatingText);
 
     const animate = () => {
       floatingText.y -= 1.5;
       floatingText.alpha -= 0.015;
-      
+
       if (floatingText.alpha <= 0) {
         this.animationContainer.removeChild(floatingText);
       } else {
@@ -294,5 +294,5 @@ export class Hud {
   getHighestScore() {
     return this.highestScore;
   }
-  
+
 }

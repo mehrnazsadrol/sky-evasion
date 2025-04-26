@@ -237,10 +237,9 @@ export class GameController {
    * @param {boolean} isFirstTile - Marks starting tile
    */
   addTile(x, tileWidth, slimeInfo, isLastTile, isFirstTile = false) {
-    const tile = new PIXI.Graphics();
-    tile.beginFill(0x808080);
-    tile.drawRect(0, 0, tileWidth, this.roadTileHeight);
-    tile.endFill();
+    const tile = new PIXI.Graphics()
+    .rect(0, 0, tileWidth, this.roadTileHeight)
+    .fill({color:0x808080});
 
     tile.x = x;
     tile.y = this.c_height - this.roadTileHeight;
@@ -401,7 +400,7 @@ export class GameController {
     if (prevTile?.isLastTile) {
       this.levelManager.levelUp();
       this.hud.showLevelText(this.levelManager.getLevel());
-      this.hud.addLife(2);
+      this.hud.updateLife(2);
       this.hud.addScore(300);
       prevTile.isLastTile = false;
     }

@@ -83,10 +83,9 @@ export class GameOver {
     const iconW = 200;
     const iconH = 200;
 
-    const rect = new PIXI.Graphics();
-    rect.beginFill(0xffffff, 0);
-    rect.drawRect(0, 0, iconW, iconH);
-    rect.endFill();
+    const rect = new PIXI.Graphics()
+    .rect(0, 0, iconW, iconH)
+    .fill({color:0xffffff, alpha:0});
 
     rect.interactive = true;
     rect.buttonMode = true;

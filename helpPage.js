@@ -46,7 +46,7 @@ export class HelpPage {
   async _setupBackgroung() {
     const bg = this.assets.getTexture('help_background');
     const bg_sprite = new PIXI.Sprite(bg);
-    
+
     // Calculates scaling to fit background to canvas
     let scale, offsetX = 0, offsetY = 0;
     const targetWidth = this.c_width;
@@ -66,10 +66,9 @@ export class HelpPage {
     bg_sprite.width = bg.width * scale;
     bg_sprite.height = bg.height * scale;
 
-    const mask = new PIXI.Graphics();
-    mask.beginFill(0xFFFFFF);
-    mask.drawRect(0, 0, targetWidth, targetHeight);
-    mask.endFill();
+    const mask = new PIXI.Graphics()
+      .rect(0, 0, targetWidth, targetHeight)
+      .fill({ color: 0xFFFFFF });
     this.container.addChild(mask);
     bg_sprite.mask = mask;
     //centralize the background with the offset
@@ -85,10 +84,9 @@ export class HelpPage {
   async _setupPageContent() {
     this.contentContainer = new PIXI.Container();
     // Create semi-transparent background for text content
-    const bg = new PIXI.Graphics();
-    bg.beginFill(0xFDF1DB, 0.6);
-    bg.drawRect(this.scrollX, 0, this.scrollWidth, this.c_height);
-    bg.endFill();
+    const bg = new PIXI.Graphics()
+      .rect(this.scrollX, 0, this.scrollWidth, this.c_height)
+      .fill({ color: 0xFDF1DB, alpha: 0.6 });
     this.contentContainer.addChild(bg);
     this.container.addChild(this.contentContainer);
 
@@ -102,10 +100,9 @@ export class HelpPage {
     this.scrollContainer.addChild(this.textContainer);
     this.scrollContainer.height = contentHeight;
 
-    const scrollMask = new PIXI.Graphics();
-    scrollMask.beginFill(0xFFFFFF, 0);
-    scrollMask.drawRect(this.scrollX, 50, this.scrollWidth, this.c_height);
-    scrollMask.endFill();
+    const scrollMask = new PIXI.Graphics()
+      .rect(this.scrollX, 50, this.scrollWidth, this.c_height)
+      .fill({ color: 0xFFFFFF, alpha: 0 });
     this.contentContainer.addChild(scrollMask);
     this.scrollContainer.mask = scrollMask;
     this.contentContainer.addChild(this.scrollContainer);
@@ -124,17 +121,15 @@ export class HelpPage {
     const scrollbarX = this.scrollX + this.scrollWidth - scrollbarWidth;
     const scrollbarHeight = this.c_height - 100;
 
-    this.scrollbarTrack = new PIXI.Graphics();
-    this.scrollbarTrack.beginFill(0xCCCCCC, 0);
-    this.scrollbarTrack.drawRect(scrollbarX, 100, scrollbarWidth, scrollbarHeight);
-    this.scrollbarTrack.endFill();
+    this.scrollbarTrack = new PIXI.Graphics()
+      .rect(scrollbarX, 100, scrollbarWidth, scrollbarHeight)
+      .fill({ color: 0xCCCCCC, alpha: 0 });
     this.contentContainer.addChild(this.scrollbarTrack);
 
     const thumbHeight = Math.max(30, scrollbarHeight * (scrollbarHeight / contentHeight));
-    this.scrollbarThumb = new PIXI.Graphics();
-    this.scrollbarThumb.beginFill(0x0C0950, 0.7);
-    this.scrollbarThumb.drawRect(scrollbarX, 100, scrollbarWidth, thumbHeight);
-    this.scrollbarThumb.endFill();
+    this.scrollbarThumb = new PIXI.Graphics()
+      .rect(scrollbarX, 100, scrollbarWidth, thumbHeight)
+      .fill({ color: 0x0C0950, alpha: 0.7 });
     this.scrollbarThumb.interactive = true;
     this.scrollbarThumb.buttonMode = true;
     this.contentContainer.addChild(this.scrollbarThumb);
@@ -486,12 +481,13 @@ export class HelpPage {
   }
 
   async _addCloseButton() {
+    const iconSize = this.c_width * 0.05;
     const closeButton = new PIXI.Sprite(this.assets.getTexture('close_icon'));
     closeButton.anchor.set(1, 0.5);
     closeButton.x = this.c_width - this.scrollX;
-    closeButton.y = 50;
-    closeButton.width = 50;
-    closeButton.height = 50;
+    closeButton.y = iconSize;
+    closeButton.width = iconSize;
+    closeButton.height = iconSize;
     closeButton.interactive = true;
     closeButton.buttonMode = true;
 

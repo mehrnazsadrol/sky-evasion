@@ -15,6 +15,7 @@ export class SettingButtonManager {
    * @param {function} loadBackgroundOptionsScreen - Callback for background options
    * @param {function} loadAvatarOptionsScreen - Callback for avatar options
    * @param {function} loadHelpScreen - Callback for help screen
+   * @param {function} loadSoundSettingScreen - Callback for sound settings
    * @param {Object} assets - Game assets manager
    */
   constructor(
@@ -23,6 +24,7 @@ export class SettingButtonManager {
     loadBackgroundOptionsScreen,
     loadAvatarOptionsScreen,
     loadHelpScreen,
+    loadSoundSettingScreen,
     assets
   ) {
     this.c_width = c_width;
@@ -30,8 +32,14 @@ export class SettingButtonManager {
     this.loadBackgroundOptionsScreen = loadBackgroundOptionsScreen;
     this.loadAvatarOptionsScreen = loadAvatarOptionsScreen;
     this.loadHelpScreen = loadHelpScreen;
+    this.loadSoundSettingScreen = loadSoundSettingScreen;
     this.assets = assets;
     this.OptionsContainer = null;
+    this.iconSize = this.c_width / 20;
+    this.xPadding = this.iconSize * 0.5;
+    this.yPadding = this.iconSize;
+    this.currentX = this.xPadding * 2;
+
 
     this.dropShadowFilter = this.assets.getDropFilterDark();
   }
@@ -43,25 +51,22 @@ export class SettingButtonManager {
    * @returns {Promise<PIXI.Graphics>} Interactive button with wallpaper icon
    */
   async createWallpaperButton() {
-    const iconW = 50;
-    const iconH = 50;
-
-    const button = new PIXI.Graphics();
-    button.beginFill(0xfffade, 0);
-    button.drawRect(0, 0, iconW, iconH);
-    button.endFill();
+    const button = new PIXI.Graphics()
+      .rect(0, 0, this.iconSize, this.iconSize)
+      .fill({ color: 0xfffade, alpha: 0 });
 
     button.interactive = true;
     button.buttonMode = true;
 
     const wallpaperIconTexture = this.assets.getTexture('wallpaper_icon');
     const wallpaperIcon = new PIXI.Sprite(wallpaperIconTexture);
-    wallpaperIcon.width = iconW;
-    wallpaperIcon.height = iconH;
+    wallpaperIcon.width = this.iconSize;
+    wallpaperIcon.height = this.iconSize;
     button.addChild(wallpaperIcon);
 
-    button.x = 40;
-    button.y = 40;
+    button.x = this.currentX;
+    button.y = this.yPadding;
+    this.currentX += this.iconSize + this.xPadding;
 
     button.on("pointerover", () => {
       button.filters = [this.dropShadowFilter]; // Add shadow on hover
@@ -86,25 +91,22 @@ export class SettingButtonManager {
    * @returns {Promise<PIXI.Graphics>} Interactive button with avatar icon
    */
   async createCharacterChangeButton() {
-    const iconW = 80;
-    const iconH = 80;
-
-    const button = new PIXI.Graphics();
-    button.beginFill(0xfffade, 0);
-    button.drawRect(0, 0, iconW, iconH);
-    button.endFill();
+    const button = new PIXI.Graphics()
+      .rect(0, 0, this.iconSize * 1.5, this.iconSize * 1.5)
+      .fill({ color: 0xfffade, alpha: 0 });
 
     button.interactive = true;
     button.buttonMode = true;
 
     const avatarIconTexture = this.assets.getTexture('avatar_icon');
     const avatarIcon = new PIXI.Sprite(avatarIconTexture);
-    avatarIcon.width = iconW;
-    avatarIcon.height = iconH;
+    avatarIcon.width = this.iconSize * 1.5;
+    avatarIcon.height = this.iconSize * 1.5;
     button.addChild(avatarIcon);
 
-    button.x = 110;
-    button.y = 25;
+    button.x = this.currentX;
+    button.y = this.yPadding * 0.75;
+    this.currentX += this.iconSize * 1.5 + this.xPadding;
 
     button.on("pointerover", () => {
       button.filters = [this.dropShadowFilter]; // Add shadow on hover
@@ -123,31 +125,67 @@ export class SettingButtonManager {
   }
 
   /**
+ * @async
+ * @method createSoundSettingButton
+ * @description Creates and configures the sound setting button
+ * @returns {Promise<PIXI.Graphics>} Interactive button with config icon
+ */
+  async createSoundSettingButton() {
+    const button = new PIXI.Graphics()
+      .rect(0, 0, this.iconSize, this.iconSize)
+      .fill({ color: 0xfffade, alpha: 0 });
+
+
+    button.interactive = true;
+    button.buttonMode = true;
+
+    const iconTexture = this.assets.getTexture('sound_settings');
+    const soundIcon = new PIXI.Sprite(iconTexture);
+    soundIcon.width = this.iconSize;
+    soundIcon.height = this.iconSize;
+    button.addChild(soundIcon);
+
+    button.x = this.currentX;
+    button.y = this.yPadding;
+
+    button.on("pointerover", () => {
+      button.filters = [this.dropShadowFilter]; // Add shadow on hover
+    });
+
+    button.on("pointerout", () => {
+      button.filters = []; // Remove shadow when not hovering
+    });
+
+    // Click handler - loads sound setting screen
+    button.on("click", async () => {
+      this.loadSoundSettingScreen();
+    });
+
+    return button;
+  }
+
+  /**
    * @async
    * @method createHelpButton
    * @description Creates and configures the help button
    * @returns {Promise<PIXI.Graphics>} Interactive button with help icon
    */
   async createHelpButton() {
-    const iconW = 80;
-    const iconH = 80;
-
-    const button = new PIXI.Graphics();
-    button.beginFill(0xfffade, 0);
-    button.drawRect(0, 0, iconW, iconH);
-    button.endFill();
+    const button = new PIXI.Graphics()
+      .rect(0, 0, this.iconSize * 1.5, this.iconSize * 1.5)
+      .fill({ color: 0xfffade, alpha: 0 });
 
     button.interactive = true;
     button.buttonMode = true;
 
     const helpIconTexture = this.assets.getTexture('help_icon');
     const helpIcon = new PIXI.Sprite(helpIconTexture);
-    helpIcon.width = iconW;
-    helpIcon.height = iconH;
+    helpIcon.width = this.iconSize * 1.5;
+    helpIcon.height = this.iconSize * 1.5;
     button.addChild(helpIcon);
 
-    button.x = this.c_width - 60 - iconW;
-    button.y = 25;
+    button.x = this.c_width - this.iconSize * 1.5 - this.xPadding;
+    button.y = this.yPadding;
 
     button.on("pointerover", () => {
       button.filters = [this.dropShadowFilter]; // Add shadow on hover
@@ -163,5 +201,13 @@ export class SettingButtonManager {
     });
 
     return button;
+  }
+
+  /**
+   * @method resetButtonPosition
+   * @description Resets the button position to the initial state
+   */
+  resetButtonPosition() {
+    this.currentX = this.xPadding * 2;
   }
 }

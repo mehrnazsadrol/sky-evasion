@@ -48,10 +48,9 @@ export class Gem {
     this.gemContainer.x = x;
     this.gemContainer.y = y;
 
-    const halo = new PIXI.Graphics();
-    halo.beginFill(0xFFFFFF, 0.3);
-    halo.drawCircle(0, 0, this.gemWidth * 0.5);
-    halo.endFill();
+    const halo = new PIXI.Graphics()
+    .circle(0, 0, this.gemWidth * 0.5)
+    .fill({color:0xFFFFFF,alpha:0.3});
 
     const blurFilter = new PIXI.BlurFilter();
     blurFilter.blur = 6; 
