@@ -196,11 +196,10 @@ export class SoundSetting {
    * @description Creates and positions the volume control elements (buttons and bars)
    * @param {string} label - Label for the volume control (e.g., 'MUSIC', 'SFX')
    * @param {number} yPos - Y position for the volume control
-   * @param {number} currVol - Current volume level
    * @param {function} setVolume - Function to set the volume
    * @param {function} handleMuteBtn - Function to handle mute button click
    */
-  async _createVolumeControl(label, yPos, currVol, setVolume, handleMuteBtn) {
+  async _createVolumeControl(label, yPos, setVolume, handleMuteBtn) {
     const iconSize = this.c_width * 0.05;
     const paddingX = iconSize * 0.75;
     const paddingY = iconSize * 0.5;

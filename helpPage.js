@@ -292,7 +292,7 @@ export class HelpPage {
     const sectionBottomMargin = 25;
 
     const title = this._createTextElement(
-      'Sky Evasion Game play Guide',
+      'Sky Invasion Game play Guide',
       titleStyle,
       (this.scrollWidth) / 2,
       titleBottomMargin,

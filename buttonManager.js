@@ -77,7 +77,7 @@ export class ButtonManager {
       fill: this.textColor,
     });
     
-    const message = new PIXI.Text('SKY EVASION', style);
+    const message = new PIXI.Text('SKY INVASION', style);
     message.anchor.set(0.5);
     message.x = this.c_width / 2;
     message.y = this.c_height / 5;
