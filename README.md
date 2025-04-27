@@ -10,7 +10,6 @@ The city has fallen to an alien slime invasion! With streets overrun and rooftop
 - [How to Play](#how-to-play)
 - [Game Mechanics](#game-mechanics)
 - [Customization](#customization)
-- [Progression System](#progression-system)
 
 ## Features
 
