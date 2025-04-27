@@ -146,16 +146,13 @@ export class SoundSetting {
   async _createMusicControls() {
     const yPos = this.c_height * 0.35;
     await this._createVolumeControl('MUSIC', yPos,
-      this.musicConfig.music.volLvl,
       (vol) => {
+        if (!this.musicConfig.sfx.isMuted) this.soundManager.playButtonClick();
         this.musicConfig.music.volLvl = vol;
         this.soundManager.setMusicVolume(vol);
-        if (this.musicConfig.music.isMuted && vol > 0) {
-          this.musicConfig.music.isMuted = false;
-          this.soundManager.setMusicDisable(this.musicConfig.music.isMuted);
-        }
       },
       () => {
+        if (!this.musicConfig.sfx.isMuted) this.soundManager.playButtonClick();
         this.musicConfig.music.isMuted = !this.musicConfig.music.isMuted;
         this.soundManager.setMusicDisable(this.musicConfig.music.isMuted);
         this._updateMuteButton(this.musicConfig.music.muteButton, this.musicConfig.music.isMuted, 'music');
@@ -173,19 +170,16 @@ export class SoundSetting {
   async _createSfxControls() {
     const yPos = this.c_height * 0.55;
     await this._createVolumeControl('SFX', yPos,
-      this.musicConfig.sfx.volLvl,
       (vol) => {
         this.musicConfig.sfx.volLvl = vol;
         this.soundManager.setSfxVolume(vol);
-        if (this.musicConfig.sfx.isMuted && vol > 0) {
-          this.musicConfig.sfx.isMuted = false;
-          this.soundManager.setSfxDisable(this.musicConfig.sfx.isMuted);
-        }
+        this.soundManager.playButtonClick();
       },
       () => {
         this.musicConfig.sfx.isMuted = !this.musicConfig.sfx.isMuted;
         this.soundManager.setSfxDisable(this.musicConfig.sfx.isMuted);
         this._updateMuteButton(this.musicConfig.sfx.muteButton, this.musicConfig.sfx.isMuted, 'sfx');
+        if (!this.musicConfig.sfx.isMuted) this.soundManager.playButtonClick();
       }
     );
     this._updateVolumeButtonsState('sfx', this.musicConfig.sfx.isMuted);
@@ -374,10 +368,7 @@ export class SoundSetting {
       button.filters = [];
     });
 
-    button.on('click', () => {
-      this.soundManager.playButtonClick();
-      onClick();
-    });
+    button.on('click', onClick);
 
     this.container.addChild(button);
     return button;

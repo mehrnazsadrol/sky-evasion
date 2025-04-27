@@ -249,7 +249,6 @@ export class GameController {
     tile.y = this.c_height - this.roadTileHeight;
     
     if (isLastTile) {
-      console.log('isLastTile', isLastTile);
       tile.isLastTile = isLastTile;
     }
 
@@ -268,7 +267,8 @@ export class GameController {
             this.assets, 
             this.c_height, 
             isSlimeMoving, 
-            i
+            i,
+            this.levelManager.getLevel(),
           ));
         }
       }
@@ -298,11 +298,11 @@ export class GameController {
           !this.isJumping &&  
           (currentTile && this.avatar.getAvatarX() + this.avatar.getAvatarWidth() < currentTile.x + currentTile.width * 0.67)) {
         this.endAutoRun();
-        console.log('Auto-run ended');
       } else {
         this._handleAutoRunJump();
       }
     }
+    //check if avatar is on the finish tile (won the game!)
     if (this.finishTile && currentTile?.id === this.finishTile?.id) {
       this.gameEndMove = true;
       this.handleFinishTileMovement();
@@ -371,8 +371,10 @@ export class GameController {
         for (const gem of tile.gems)
           gem.updateGem(-this.speed);
     }
+    //move the block for victory screen if it exists
     if (this.finalTileBlock)
       this.finalTileBlock.x -= this.speed;
+
     this.backgroundManager.updateBackgroundLayers(this.speed);
   }
 
@@ -413,12 +415,14 @@ export class GameController {
     if (prevTile?.isLastTile) {
       const currLvl = this.levelManager.getLevel();
       if (currLvl + 1 > this.levelManager.getMaxLevel()) {
+        // Game won
         this.finishingGame = true;
         this.hud.addScore(500);
       } else {
+        // Level up and continue :)
         this.levelManager.levelUp();
         this.hud.showLevelText(currLvl + 1);
-        this.hud.updateLife(4);
+        this.hud.updateLife(2);
         this.hud.addScore(300);
       }
       prevTile.isLastTile = false;
@@ -584,11 +588,11 @@ export class GameController {
       const gemType = this.nextGem.getGemType();
       this.nextGem.destroy();
       this.nextGem = null;
-      
       if (gemType === 'heart') {
         this.hud.updateLife(1);
       } else if (gemType === 'diamond' && !this.autoRun) {
         this.startAutoRun();
+        this.hud.addScore(100);
       }
     }
   }
@@ -736,7 +740,7 @@ export class GameController {
   /**
    * @method createFinalTileSet
    * @description Creates the final tile set for the game victory
-   * @param {int} currentX x position of the last tile
+   * @param {int} currentX x position for the last tile
    */
   createFinalTileSet(currentX) {
     if (this.finishTile) return;
@@ -762,13 +766,14 @@ export class GameController {
       this._updateGameElements();
       return;
     }
-    console.log(this.finishTile.x + this.finishTile.width);
     const avatarX = this.avatar.getAvatarX();
     const jumpStartX = this.finalTileBlock.x - this.finalTileBlock.width * 0.75;
     const jumpHeight = this.finalTileBlock.height * 1.5;
     const jumpDistance = this.finalTileBlock.width * 1.5;
 
     this.avatar.setAvatarX(avatarX + this.speed);
+
+    // Block Jump handling
     if (avatarX >= jumpStartX && avatarX <= jumpDistance + jumpStartX) {
       if(!this.finishingJump)
         this.finishingJump = true;
@@ -781,6 +786,7 @@ export class GameController {
         this.finishingJump = false;
       }
     }
+    //call the victory game screen
     if (avatarX >= this.c_width) {
       this.gameOver(false);
     }

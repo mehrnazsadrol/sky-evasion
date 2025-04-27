@@ -292,7 +292,7 @@ export class HelpPage {
     const sectionBottomMargin = 25;
 
     const title = this._createTextElement(
-      'Sky Invasion Game play Guide',
+      'Sky Evasion User Manual',
       titleStyle,
       (this.scrollWidth) / 2,
       titleBottomMargin,
@@ -310,9 +310,11 @@ export class HelpPage {
     currentY += gameObjectiveHeader.height + headerBottomMargin;
 
     const gameObjectiveText = this._createTextElement(
-      'Escape the alien slime invasion by running across rooftops! ' +
-      'You can\'t go backward—forward is the only way. \n Survive as ' +
-      'long as possible while avoiding slimes and gaps.',
+      'The city has fallen to an alien slime invasion. With the streets overrun and the rooftops becoming' +
+       'increasingly perilous, your only option is to escape — and quickly! The slimes have surrounded the city,'+
+       ' leaving no time for hesitation. You have one chance to survive. Leap across rooftops, evade the deadly' +
+       ' slimes that block your path, and endure for as long as possible. The farther you make it, the higher your score '+
+       '— a testament to your skill, courage, and determination.',
       bodyStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY

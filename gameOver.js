@@ -60,7 +60,9 @@ export class GameOver {
   }
 
   /**
-   * Creates the game over text
+   * @private
+   * @method _loadText
+   * @description Creates the Game over/ You won text
    */
   _loadText() {
     const textColor = this.assets.getBackgroundTextColor();
@@ -85,8 +87,9 @@ export class GameOver {
   }
 
   /**
-   * Creates the interactive restart button
    * @private
+   * @method _loadRestartButton
+   * @description Creates the restart button
    */
   _loadRestartButton() {
     const iconW = 200;
@@ -120,14 +123,6 @@ export class GameOver {
     rect.x = (this.c_width - iconW) / 2;
     rect.y = (this.c_height - iconH) * 5 / 6;
 
-    rect.on("pointerover", () => {
-      rect.filters = [this.dropShadowFilter];
-    });
-
-    rect.on("pointerout", () => {
-      rect.filters = [];
-    });
-
     rect.on("click", async () => {
       this.playBtnClickSound();
       await this.restartGame();
@@ -136,6 +131,11 @@ export class GameOver {
     this.container.addChild(rect);
   };
 
+  /**
+   * @private
+   * @method _loadScore
+   * @description Creates and positions the score and highest score text
+   */
   _loadScore() {
     const scoreStyle = {
       fontFamily: 'RoadRage',

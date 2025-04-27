@@ -134,8 +134,9 @@ export class Assets {
         animationSpeed: 0.3,
       }
     };
-    this.musicMaxVol =  0.8;
-    this.sfxMaxVol = 0.1;
+    // Maximum music and sound effect volumes
+    this.musicMaxVol = 0.8;
+    this.sfxMaxVol = 1;
 
     // Default canvas background color
     this.canvas_bg_color = 0x2D336B;
@@ -631,10 +632,15 @@ export class Assets {
     return this.sfxMaxVol;
   }
 
-  getBlockSprite(){
+  /**
+     * @method getBlockSprite
+     * @description Creates a block sprite for the game victory
+     * @returns {PIXI.Sprite} Block sprite
+     */
+  getBlockSprite() {
     const blockTexture = this.textures.get('block');
     const blockSprite = new PIXI.Sprite(blockTexture);
-    blockSprite.anchor.set(0.5,1);
+    blockSprite.anchor.set(0.5, 1);
     blockSprite.width = 150;
     blockSprite.height = 150;
     return blockSprite;

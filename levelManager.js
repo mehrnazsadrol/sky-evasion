@@ -363,7 +363,7 @@ export class LevelManager {
 
     const totalSpaces = this.tileSequence.length - 1;
     if (this.currentLevel >= this.maxLevel-1)
-      while (gems.length < totalSpaces-4 ) gems.push('diamond');
+      while (gems.length < totalSpaces-4 ) gems.push('');
     else 
       while (gems.length < totalSpaces ) gems.push('');
     this._shuffleArray(gems);
@@ -371,7 +371,6 @@ export class LevelManager {
       while (gems.length < totalSpaces ) gems.push('');
 
     this.gemSequence = gems;
-    console.log('Gems:', this.gemSequence);
   }
 
   /**
@@ -398,9 +397,9 @@ export class LevelManager {
 
     if (this.currentLevel <= 6 && this.currentLevel > 3)
       return Math.random() < 0.5;
-    else if (this.currentLevel <= 9)
+    else if (this.currentLevel <= 9 && this.currentLevel > 6)
       return Math.random() < 0.4;
-    else if (this.currentLevel <= 12)
+    else if (this.currentLevel <= 12 && this.currentLevel > 9)
       return true;
     else 
       return false;
