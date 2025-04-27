@@ -1,6 +1,6 @@
 # Sky Evasion
 
-![Game Screenshot](res/readme-files/StartScreen.png)
+![Game Screenshot](res/readme/StartScreen.png)
 
 The city has fallen to an alien slime invasion! With streets overrun and rooftops becoming increasingly perilous, your only chance is to escape by leaping across buildings while avoiding deadly slimes. This enhanced edition features new gameplay mechanics, visual customization, and progressive difficulty.
 
@@ -16,14 +16,14 @@ The city has fallen to an alien slime invasion! With streets overrun and rooftop
 
 ### Enhanced Gameplay
 - 🏃 Multiple avatar selection (boy/girl characters)
-![Game Screenshot](res/readme-files/AvatarSelection.png)
+![Game Screenshot](res/readme/AvatarSelection.png)
 - 🏙️ 8 unique parallax city backgrounds with different themes
-![Game Screenshot](res/readme-files/BackgroundOptions.png)
+![Game Screenshot](res/readme/BackgroundOptions.png)
 - 💎 New gem collection system (life restoration and speed boosts)
 - ❤️ Lives system with visual indicators
-![Game Screenshot](res/readme-files/LifeLost.png)
+![Game Screenshot](res/readme/LifeLost.png)
 - 🎚️ Comprehensive sound settings with volume control
-![Game Screenshot](res/readme-files/SoundSetting.png)
+![Game Screenshot](res/readme/SoundSetting.png)
 
 ### Technical Information
 - 12 predefined levels with progressive difficulty
@@ -62,11 +62,11 @@ The city has fallen to an alien slime invasion! With streets overrun and rooftop
   - Blue: Static
   - Green: Moves randomly (from Level 4)
   - Red: Jumps aggressively (from Level 7)
-![Game Screenshot](res/readme-files/GameOverOrWon.png)
+![Game Screenshot](res/readme/GameOverOrWon.png)
 - **Collect Gems**:
   - ❤️ Life Gems: Restore lost lives
   - 💎 Velocity Gems: Auto-run activated with temporary immunity
-![Game Screenshot](res/readme-files/Timer.png)
+![Game Screenshot](res/readme/Timer.png)
 
 ### 🏆 Scoring System
 | Action                | Points          |
