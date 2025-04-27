@@ -16,13 +16,11 @@ The city has fallen to an alien slime invasion! With streets overrun and rooftop
 
 ### Enhanced Gameplay
 - 🏃 Multiple avatar selection (boy/girl characters)
-![Game Screenshot](res/readme/AvatarSelection.png)
 - 🏙️ 8 unique parallax city backgrounds with different themes
-![Game Screenshot](res/readme/BackgroundOptions.png)
 - 💎 New gem collection system (life restoration and speed boosts)
 - ❤️ Lives system with visual indicators
-![Game Screenshot](res/readme/LifeLost.png)
 - 🎚️ Comprehensive sound settings with volume control
+![Game Screenshot](res/readme/AvatarSelection.png)
 ![Game Screenshot](res/readme/SoundSetting.png)
 
 ### Technical Information
@@ -55,7 +53,7 @@ The city has fallen to an alien slime invasion! With streets overrun and rooftop
 ### 🏹️ Basic Controls
 - **Right Arrow / D** → Move forward (Double tap for run)
 - **Up Arrow / W** → Jump (Double tap for double jump)
-
+![Game Screenshot](res/readme/LifeLost.png)
 ### 🧩 Gameplay Elements
 - **Avoid Tile Gaps** by jumping (some require double jumps)
 - **Evade Slimes** that appear on rooftops
@@ -111,7 +109,7 @@ Choose from 8 unique cityscapes:
 6. Cyber District
 7. Rainy Metropolis
 8. Void City
-
+![Game Screenshot](res/readme/BackgroundOptions.png)
 ### Player Avatars
 - Girl character (default)
 - Boy character
