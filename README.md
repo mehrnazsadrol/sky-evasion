@@ -117,3 +117,8 @@ Choose from 8 unique cityscapes:
 - Adjustable music and SFX volume
 - Mute/unmute options
 - Settings persist across sessions
+
+
+## Licences
+All assets used in this project (graphics, sounds, and fonts) are licensed under free-to-use and no attribution required licenses (CC0, or similar).
+
