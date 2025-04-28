@@ -73,7 +73,7 @@ export class Assets {
           dead: { url: "res/boy-character/Dead (", count: 15, textures: [] },
         },
         fallThreshold: 60 / 100,
-        collisionThreshold: 80 / 100,
+        collisionThreshold: 70 / 100,
       },
     };
 

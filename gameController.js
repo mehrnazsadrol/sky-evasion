@@ -553,7 +553,7 @@ export class GameController {
             }
 
             const yOverlap = avatarBottom > slimeTop && avatarTop < slimeBottom;
-            if (xOverlap && yOverlap && !slime.collisionProcessed) {
+            if (xOverlap && yOverlap && !slime.collisionProcessed && !this.autoRun) {
                 slime.collisionProcessed = true;
                 
                 const slimeType = slime.getSlimeType();
