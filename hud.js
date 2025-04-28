@@ -1,4 +1,20 @@
+/**
+ * @file Hud.js
+ * @description Manages the HUD (Heads-Up Display) for the game, including score, lives, and animations.
+ * 
+ * Called By: GameController
+ * Calls: Assets manager for textures and styles
+ */
 export class Hud {
+  /**
+   * @constructor
+   * @description Initializes the HUD with specified parameters.
+   * @param {PIXI.Container} container - Parent container for the HUD
+   * @param {number} c_width - Canvas width
+   * @param {number} c_height - Canvas height
+   * @param {Assets} assets - Game assets manager
+   * @param {SoundManager} soundManager - Sound manager for playing sounds
+   */
   constructor(container, c_width, c_height, assets, soundManager) {
     this.container = container;
     this.c_width = c_width;
@@ -37,6 +53,10 @@ export class Hud {
     this.showLevelText(1);
   }
 
+  /**
+   * @method _setupHud
+   * @description Sets up the HUD background element.
+   */
   _setupHud() {
     const hudBar = new PIXI.Graphics()
       .rect(0, 0, this.c_width, this.bannerHeight)
@@ -54,7 +74,10 @@ export class Hud {
     this.container.addChild(this.animationContainer);
   }
 
-
+  /**
+   * @method _setupLivesText
+   * @description Sets up the lives #x♥ element in the HUD.
+   * */
   _setupLivesText() {
     this.livesContainer = new PIXI.Container();
     const fillColor = 0xF30067;
@@ -98,6 +121,11 @@ export class Hud {
     this.hudContainer.addChild(this.livesContainer);
   }
 
+  /**
+   * @method showLevelText
+   * @description Displays the level text animation.
+   * @param {number} level - The current game level
+   */
   showLevelText(level) {
     const animationTask = {
       priority: this.animationPriorities.levelText,
@@ -115,7 +143,11 @@ export class Hud {
     this._queueAnimation(animationTask);
   }
 
-
+  /**
+   * @method showAutoRunTimer
+   * @description Displays the countdown timer for auto-run.
+   * @param {number} autoRunDuration - Duration of the auto-run in milliseconds
+   */
   showAutoRunTimer(autoRunDuration) {
     const animationTask = {
       priority: this.animationPriorities.autoRunTimer,
@@ -126,7 +158,11 @@ export class Hud {
 
     this._queueAnimation(animationTask);
   }
-
+  /**
+   * @method _queueAnimation
+   * @description Manages and queues an animation task based on its priority.
+   * @param {Object} animationTask - The animation task to queue
+   */
   _queueAnimation(animationTask) {
     if (animationTask.priority === this.animationPriorities.lostLife &&
       this.currentAnimation?.priority === this.animationPriorities.lostLife) {
@@ -152,6 +188,10 @@ export class Hud {
     }
   }
 
+  /**
+   * @method _processNextAnimation
+   * @description Processes the next animation in the queue.
+   */
   _processNextAnimation() {
     if (this.animationQueue.length === 0) {
       this.currentAnimation = null;
@@ -167,12 +207,22 @@ export class Hud {
     });
   }
 
+  /**
+   * @method _speedUpCurrentAnimation
+   * @description Speeds up the current animation if it exists.
+   */
   _speedUpCurrentAnimation() {
     if (this.currentLevelAnimation) {
       this.levelTextSpeedFactor = 4;
     }
   }
 
+  /**
+   * @method _executeTextAnimation
+   * @description Executes the text animation for level or countdown.
+   * @param {PIXI.Text} textToDisplay - The text to display
+   * @param {function} completeCallback - Callback function to call when animation is complete
+   */
   _executeTextAnimation(textToDisplay, completeCallback) {
     if (this.currentLevelAnimation) {
       this.animationContainer.removeChild(this.currentLevelAnimation);
@@ -222,6 +272,12 @@ export class Hud {
     animate();
   }
 
+  /**
+   * @method _executeAutoRunTimerAnimation
+   * @description Executes the countdown timer animation for auto-run.
+   * @param {number} autoRunDuration 
+   * @param {function} completeCallback 
+   */
   _executeAutoRunTimerAnimation(autoRunDuration, completeCallback) {
     if (this.currentTimerAnimations) {
       this.currentTimerAnimations.forEach(anim => {
@@ -268,6 +324,13 @@ export class Hud {
     }
   }
 
+  /**
+   * @method _animateTimerText
+   * @description Animates the countdown timer text.
+   * @param {PIXI.Text} timerText - The timer text to animate
+   * @param {boolean} isLast - Flag to indicate if this is the last timer text
+   * @param {function} completionCallback - Callback function to call when animation is complete
+   */
   _animateTimerText(timerText, isLast, completionCallback) {
     const animationDuration = 1000;
     const startTime = Date.now();
@@ -304,13 +367,21 @@ export class Hud {
     animate();
   }
 
+  /**
+   * @method _updateLifeText
+   * @description Updates the lives text in the HUD.
+   */
   _updateLifeText() {
     this.livesNumber.text = this.lives.toString();
     this.livesMultiplier.x = this.livesNumber.width + 5;
     this.livesHeart.x = this.livesMultiplier.x + this.livesMultiplier.width + 5;
   }
 
-
+  /**
+   * @method addScore
+   * @description Adds a score to the current score and updates the score text.
+   * @param {number} score - The score to add
+   */
   addScore(score) {
     this.score += score;
     this.scoreText.text = `SCORE: ${this.score}`;
@@ -319,7 +390,11 @@ export class Hud {
     }
   }
 
-  _showWonTheGame() {
+  /**
+   * @method _showWonTheGame
+   * @description Displays the victory message when the game is won.
+   */
+  showWonTheGame() {
     if (this.hasShownVictory) return;
     this.hasShownVictory = true;
 
@@ -381,20 +456,16 @@ export class Hud {
       const progress = Math.min(elapsed / animationDuration, 1);
 
       if (progress < 0.3) {
-        // Grow phase
         const growProgress = progress / 0.3;
         victoryContainer.alpha = growProgress;
         victoryContainer.scale.set(growProgress * 1.5);
       } else if (progress < 0.6) {
-        // Bounce back phase
         const bounceProgress = (progress - 0.3) / 0.3;
         victoryContainer.scale.set(1.5 - (bounceProgress * 0.5));
       } else if (progress < 0.8) {
-        // Hold steady phase
         victoryContainer.scale.set(1);
         victoryContainer.alpha = 1;
       } else {
-        // Final glow phase
         const glowProgress = (progress - 0.8) / 0.2;
         victoryContainer.scale.set(1 + glowProgress * 0.1);
         victoryContainer.tint = interpolateColor(0xFFD700, 0xFFFFFF, glowProgress);
@@ -403,13 +474,11 @@ export class Hud {
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Keep the text displayed after animation completes
         victoryContainer.scale.set(1);
         victoryContainer.tint = 0xFFFFFF;
       }
     };
 
-    // Helper function for color interpolation
     function interpolateColor(color1, color2, ratio) {
       const r1 = (color1 >> 16) & 0xFF;
       const g1 = (color1 >> 8) & 0xFF;
@@ -429,6 +498,11 @@ export class Hud {
     animate();
   }
 
+  /**
+   * @method updateLife
+   * @description Updates the lives count and displays an animation.
+   * @param {number} value - The value to add to the current lives
+   */
   updateLife(value) {
     if (this.lives + value > 0) {
       this.lives += value;
@@ -454,19 +528,35 @@ export class Hud {
     return false;
   }
 
+  /**
+   * @method drawScore
+   * @description draws the current score on the HUD.
+   */
   drawScore() {
     this.scoreText.text = `Score: ${this.score}`;
   }
 
+  /**
+   * @method getScore
+   * @description Returns the current score.
+   * @returns {number} - The current score
+   */
   getScore() {
     return this.score;
   }
 
+  /**
+   * @method updateHighestScore
+   * @description updates the highest score in local storage.
+   */
   updateHighestScore(score) {
     this.highestScore = score;
     localStorage.setItem("highestScore", this.highestScore.toString());
   }
-
+  /**
+   * @method getHighestScore
+   * @returns {number} - The highest score
+   */
   getHighestScore() {
     return this.highestScore;
   }

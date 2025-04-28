@@ -340,7 +340,8 @@ export class HelpPage {
 
     const movementText = this._createTextElement(
       '• Move Forward: Hold → (Right Arrow) or D to walk.\n' +
-      '• Double-tap to sprint (faster but riskier).',
+      '• Double-tap to sprint (faster but riskier).\n' +
+      '• No backwards movement.',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
@@ -357,109 +358,85 @@ export class HelpPage {
 
     const jumpingText = this._createTextElement(
       '• Jump: Press ↑ (Up Arrow) or W to jump.\n' +
-      '• Jumps only move you upward. You must hold →/D to keep moving forward!\n' +
-      '• Double Jump: Press ↑/W again mid-air for an extra boost.',
+      '• Double Jump: Press ↑/W again mid-air for an extra boost.\n' +
+      '• Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps.\n',
       bodyStyle,
       this.scrollX + this.textPadding * 2,
       currentY
     );
     currentY += jumpingText.height + sectionBottomMargin;
 
-    const mechanicsHeader = this._createTextElement(
-      'Key Mechanics',
-      headerStyle,
-      this.scrollX + this.textPadding,
-      currentY
-    );
-    currentY += mechanicsHeader.height + headerBottomMargin;
-
-    const noBackwardsHeader = this._createTextElement(
-      'No Backwards Movement',
-      subHeaderStyle,
-      this.scrollX + this.textPadding * 1.5,
-      currentY
-    );
-    currentY += noBackwardsHeader.height + subHeaderBottomMargin;
-
-    const noBackwardsText = this._createTextElement(
-      'The city collapses behind you. Keep moving right or fall!',
-      bodyStyle,
-      this.scrollX + this.textPadding * 2,
-      currentY
-    );
-    currentY += noBackwardsText.height + subHeaderBottomMargin;
-
-    const jumpNotForwardHeader = this._createTextElement(
-      'Jumping ≠ Forward Movement',
-      subHeaderStyle,
-      this.scrollX + this.textPadding * 1.5,
-      currentY
-    );
-    currentY += jumpNotForwardHeader.height + subHeaderBottomMargin;
-
-    const jumpNotForwardText = this._createTextElement(
-      'Pressing jump alone won\'t move you horizontally. Hold →/D while jumping to clear gaps. Why this matters?\n' +
-      ' If you stop holding →/D, you\'ll halt mid-air during a jump—likely falling into a gap! ',
-      bodyStyle,
-      this.scrollX + this.textPadding * 2,
-      currentY
-    );
-    currentY += jumpNotForwardText.height + subHeaderBottomMargin;
-
-    const speedHeader = this._createTextElement(
-      'Speed Matters',
-      subHeaderStyle,
-      this.scrollX + this.textPadding * 1.5,
-      currentY
-    );
-    currentY += speedHeader.height + subHeaderBottomMargin;
-
-    const speedText = this._createTextElement(
-      '• Walk (slow): Easier to time jumps.\n' +
-      '• Run (fast): Covers ground quicker but shortens reaction time.',
-      bodyStyle,
-      this.scrollX + this.textPadding * 2,
-      currentY
-    );
-    currentY += speedText.height + sectionBottomMargin;
     const obstaclesHeader = this._createTextElement(
-      'Obstacles',
+      'Rooftop Hazards',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
     );
     currentY += obstaclesHeader.height + headerBottomMargin;
 
-    const obstaclesText = this._createTextElement(
-      '• Slimes: Touch them, and it\'s game over! Jump over them to earn bonus points.\n' +
-      '• Gaps: Fall between buildings, and your run ends. Time your jumps carefully!',
-      bodyStyle,
+    const slimes = this._createTextElement(
+      'Slimes',
+      subHeaderStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += obstaclesText.height + sectionBottomMargin;
+    currentY += slimes.height + subHeaderBottomMargin;
 
-    const difficultyHeader = this._createTextElement(
-      'Difficulty',
+    const slimeText = this._createTextElement(
+      '• Blue Slimes: The most common type. They don\'t move but will end your run if touched (costs 1 life)\n' +
+      '• Green Slimes: Appear after surviving a while. They wiggle unpredictably left and right (costs 1 life)\n' +
+      '• Red Slimes: The most dangerous. They can jump at you and deal double damage (costs 2 lives)\n\n' +
+      'The further you escape, the more dangerous slimes you\'ll encounter!',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += slimeText.height + bulletListBottomMargin;
+
+    const gaps = this._createTextElement(
+      'Building Gaps',
+      subHeaderStyle,
+      this.scrollX + this.textPadding * 1.5,
+      currentY
+    );
+    currentY += gaps.height + subHeaderBottomMargin;
+
+    const gapsText = this._createTextElement(
+      '• Early in your escape, rooftops are close together with small gaps\n' +
+      '• As you near the city limits, buildings become more spread out\n' +
+      '• Later gaps require perfectly timed jumps and sprinting\n' +
+      '• One misstep and the game\'s over. Physics don\'t forgive!',
+      bodyStyle,
+      this.scrollX + this.textPadding * 2,
+      currentY
+    );
+    currentY += gapsText.height + sectionBottomMargin;
+
+    const gemsHeader = this._createTextElement(
+      'Power Up Gems',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
     );
-    currentY += difficultyHeader.height + headerBottomMargin;
+    currentY += gemsHeader.height + headerBottomMargin;
 
-    const difficultyText = this._createTextElement(
-      'The game gets harder the longer you survive:\n' +
-      '• Slimes spawn more frequently.\n' +
-      '• Gaps between rooftops become wider.',
+    const gemText = this._createTextElement(
+      'Life Gems (heart):\n' +
+      '• Restore one lost life when collected\n' +
+      '• Appear randomly throughout the city\n' +
+      '• Glow brightly making them easier to spot\n\n' +
+      'Velocity Gems (diamond):\n' +
+      '• Grant 5 seconds of enhanced speed (faster than sprinting)\n' +
+      '• Make you temporarily invulnerable to slimes\n' +
+      '• All jumps during this time are automated\n',
       bodyStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY
     );
-    currentY += difficultyText.height + sectionBottomMargin;
-
-
+    currentY += gemText.height + sectionBottomMargin;
+  
     const scoringHeader = this._createTextElement(
-      'Scoring',
+      'Scoring System',
       headerStyle,
       this.scrollX + this.textPadding,
       currentY
@@ -467,8 +444,10 @@ export class HelpPage {
     currentY += scoringHeader.height + headerBottomMargin;
 
     const scoringText = this._createTextElement(
-      '• Distance: Earn points for every rooftop you cross.\n' +
-      '• Slimes Jumped: Bonus points for each slime you stay clear.',
+      '• Base Points: Awarded continuously based on distance traveled\n' +
+      '• Slime Bonus: Extra points for every slime you successfully jump over\n' +
+      '• Gem Multipliers: Collected gems give you bonus points\n\n' +
+      'Your highest score is automatically saved - try to beat your personal best!',
       bodyStyle,
       this.scrollX + this.textPadding * 1.5,
       currentY

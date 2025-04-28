@@ -514,50 +514,59 @@ export class GameController {
    * @description Handles collision detection with slimes
    */
   _checkSlimeCollision() {
-    const avatarX = this.avatar.getAvatarX();
-    const avatarY = this.avatar.getAvatarY();
-    const avatarWidth = this.avatar.getAvatarWidth();
-    const avatarHeight = this.avatar.getAvatarHeight();
-    const avatarCollisionThreshold = this.assets.getAvatarCollisionThreshold();
+    const avatar = this.avatar;
+    const avatarX = avatar.getAvatarX();
+    const avatarY = avatar.getAvatarY();
+    const avatarWidth = avatar.getAvatarWidth();
+    const avatarHeight = avatar.getAvatarHeight();
+    const collisionThreshold = this.assets.getAvatarCollisionThreshold();
 
     for (const tile of this.tiles) {
-      if (tile.slimes) {
+        if (!tile.slimes) continue;
+
         for (const slime of tile.slimes) {
-          const slimeX = slime.animatedSlime.x;
-          const slimeY = slime.animatedSlime.y;
-          const slimeWidth = slime.getSlimeWidth();
-          const slimeHeight = slime.getSlimeHeight();
 
-          const xCollision =
-            avatarX + avatarWidth * avatarCollisionThreshold > slimeX &&
-            avatarX < slimeX + slimeWidth * avatarCollisionThreshold;
+            const slimeX = slime.animatedSlime.x;
+            const slimeY = slime.animatedSlime.y;
+            const slimeWidth = slime.getSlimeWidth();
+            const slimeHeight = slime.getSlimeHeight();
 
-          const yCollision =
-            avatarY + avatarHeight > slimeY - slimeHeight * 0.5 &&
-            avatarY < slimeY;
+            const slimeLeft = slimeX - slimeWidth * 0.5;
+            const slimeRight = slimeX + slimeWidth * 0.5;
+            const slimeTop = slimeY - slimeHeight;
+            const slimeBottom = slimeY;
 
-          // Jumping over slimes (score points)
-          if (this.isJumping || this.isDoubleJumping || this.autoRun) {
-            if (!slime.jumpedOver && ((xCollision &&
-              avatarY + avatarHeight < slimeY - slimeHeight * 0.5) || this.autoRun)) {
-              slime.jumpedOver = true;
-              this.hud.addScore(50);
+            const avatarLeft = avatarX;
+            const avatarRight = avatarX + avatarWidth * collisionThreshold;
+            const avatarTop = avatarY;
+            const avatarBottom = avatarY + avatarHeight;
+
+            const xOverlap = avatarRight > slimeLeft && avatarLeft < slimeRight;
+
+            if ((this.isJumping || this.isDoubleJumping || this.autoRun)&& !slime.jumpedOver) {
+                const verticalClear = avatarBottom < slimeTop;
+                if (xOverlap && (verticalClear || this.autoRun)) {
+                    slime.jumpedOver = true;
+                    this.hud.addScore(50);
+                    continue;
+                }
             }
-          } 
-          // Colliding with slimes (lose life)
-          else if (!slime.jumpedOver && xCollision && yCollision) {
-            slime.jumpedOver = true;
-            const slimeType = slime.getSlimeType();
-            const cost = slimeType === 0 ? -2 : -1; // Red slimes hurt more
-            const isAlive = this.hud.updateLife(cost);
-            if (!isAlive) {
-              this.gameOver(true);
+
+            const yOverlap = avatarBottom > slimeTop && avatarTop < slimeBottom;
+            if (xOverlap && yOverlap && !slime.collisionProcessed) {
+                slime.collisionProcessed = true;
+                
+                const slimeType = slime.getSlimeType();
+                const cost = slimeType === 0 ? -2 : -1;
+                if (!this.hud.updateLife(cost)) {
+                    this.gameOver(true);
+                    return;
+                }
             }
-          }
         }
-      }
     }
-  }
+}
+
 
   /**
    * @private
@@ -590,9 +599,10 @@ export class GameController {
       this.nextGem = null;
       if (gemType === 'heart') {
         this.hud.updateLife(1);
-      } else if (gemType === 'diamond' && !this.autoRun) {
-        this.startAutoRun();
         this.hud.addScore(100);
+      } else if (gemType === 'diamond') {
+        if (!this.autoRun) this.startAutoRun();
+        this.hud.addScore(150);
       }
     }
   }
@@ -758,7 +768,7 @@ export class GameController {
    * @description Handles the movement of the avatar on the finish tile for victory
    */
   handleFinishTileMovement() {
-    this.hud._showWonTheGame();
+    this.hud.showWonTheGame();
     if(this.finishTile && this.finishTile.x + this.finishTile.width > this.c_width*2) {
       if (this.avatar.getAvatarState() !== 'run') {
         this.avatar.setAvatarState('run');

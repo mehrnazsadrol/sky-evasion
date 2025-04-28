@@ -37,6 +37,8 @@ export class Slime {
     this.isJumping = false;
     this.textures = this._getSlimeTextures(false);
     this.animatedSlime = null;
+    this.jumpedOver = false;
+    this.collisionProcessed = false;
 
     this._createSlime(container, iniX, iniY);
   }
